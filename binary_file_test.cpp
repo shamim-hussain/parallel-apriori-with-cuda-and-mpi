@@ -17,7 +17,9 @@ int main(int argc, char* argv[]){
         cout<<"Failed to open file!!"<<endl;
     }
 
-    
+    cout<<"The 5th byte is ";
+    for (int i=7;i>=0;i--) cout<<((buffer[4]>>i)&1);
+    cout<<endl;
     cout<<"Length of the file = "<<file_len<<endl;
     return 0;
 }
