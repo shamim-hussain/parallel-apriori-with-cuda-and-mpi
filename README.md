@@ -1,5 +1,4 @@
-# parallel_project
-Best parallel project in the world!!
+# Parallel Implementation of The Apriori Algorithm
 
 For this project, we will implement the Apriori algorithm for Frequent pattern mining. Frequent pattern mining is a Data Mining problem where we are interested in identifying frequently occurring itemsets in a dataset of multiple transactions.
 
