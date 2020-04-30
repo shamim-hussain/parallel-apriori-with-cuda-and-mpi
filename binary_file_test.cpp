@@ -3,7 +3,7 @@
 #include "mining.h"
 
 int main(int argc, char* argv[]){
-    int trans_len=TRANS_LEN;
+    size_t trans_len=TRANS_LEN;
 
     ifstream file ("mnist_train_25.dat",ios::binary);
 
@@ -47,7 +47,13 @@ int main(int argc, char* argv[]){
     Dataset P(trans_len);
     P.push_back(I1);P.push_back(I2);
 
-    auto supports=compute_support(P,D);
+    // auto supports=compute_support(P,D);
+    // cout<<"The supports are "<<supports[0]<<", "<< supports[1]<<endl;
+
+    // C version (For Neehal and Shoron)
+    vector<unsigned int> supports(P.get_length(),0);
+    compute_support(P.get_data(), P.get_length(),
+     D.get_data(), D.get_length(), trans_len, supports.data());
     cout<<"The supports are "<<supports[0]<<", "<< supports[1]<<endl;
 
     return 0;

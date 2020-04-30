@@ -172,3 +172,34 @@ vector<unsigned int> compute_support(Dataset& P, Dataset& D){
     }
     return supports;
 }
+
+// C version (for Neehal and Shoron)
+void compute_support(char* patterns, size_t num_patterns, 
+                        char*  dataset, size_t num_data,
+                        size_t trans_len, unsigned int* supports)
+{
+    unsigned int sup_j, not_subset;
+    char* pat_j;
+    char* dat_i;
+
+    size_t i,j,k;
+
+    // Outer loop - iterates over patterns
+    for (j=0,pat_j=patterns; j<num_patterns; j++, pat_j+=trans_len){
+        sup_j=0;
+
+        // Inner loop - iterates over transactions
+        for (i=0,dat_i=dataset; i<num_data; i++, dat_i+=trans_len){
+            not_subset=0;
+
+            // Innermost loop - iterates over bytes
+            for (k=0; k<trans_len; k++){
+                not_subset = not_subset | (pat_j[k]&(~dat_i[k]));
+            }
+
+            sup_j = sup_j + !not_subset;
+        }
+
+        supports[j]=sup_j;
+    }
+}
