@@ -17,8 +17,8 @@ int main(int argc, char* argv[]){
     file.close();
     Dataset D(dat,trans_len);
 
-    cout<<"The 25th byte is ";
-    for (int i=7;i>=0;i--) cout<< ((D[0][24]>>i)&1);
+    cout<<"The 5th byte is ";
+    for (int i=7;i>=0;i--) cout<< ((D[0][4]>>i)&1);
     cout<<endl;
 
 
@@ -30,6 +30,7 @@ int main(int argc, char* argv[]){
 
     cout<<"Length of the dataset = "<<D.get_length()<<endl;
 
+    // Create a pattern and compute its support
     Itemset I1(trans_len);
     I1.add_item(66);
     I1.add_item(67);
@@ -41,9 +42,12 @@ int main(int argc, char* argv[]){
     unsigned sup = compute_support(I1,D);
     cout<<"The support of I is "<<sup<<endl;
 
+    // Create a second patter
     Itemset I2(trans_len);
     I2.add_item(145);
     I2.add_item(155);
+    
+    // Create the Patterns set and add the patterns
     Dataset P(trans_len);
     P.push_back(I1);P.push_back(I2);
 
