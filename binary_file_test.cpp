@@ -6,86 +6,127 @@ using namespace std;
 
 #define TRANS_LEN 25
 
-class Transaction{
-    char* address;
+
+typedef char etype;
+typedef vector<etype> dtype;
+typedef dtype::iterator itype;
+
+
+class Itemset{
+    itype address;
     unsigned int length;
+    dtype data;
 
     public:
-    Transaction(char* t_address, unsigned int t_length): address(t_address), length(t_length) {}
+    Itemset(itype t_address, unsigned int t_length): address(t_address), length(t_length) {}
+    Itemset(itype begin, itype end):address(begin), length(end-begin) {}
+    Itemset(unsigned int t_length):data(t_length), length(t_length){
+        address=data.begin();
+    }
+    Itemset(dtype t_data):data(t_data){
+        address=data.begin();
+        length=data.size();
+    }
+
 
     char operator [] (int i){
         if (i>=length){
-            throw overflow_error("Transaction index out of bound!");
+            throw overflow_error("Itemset index out of bound!");
         }
-        return *(address+i);
+        return address[i];
     }
-    char* operator & (){
+    itype begin(){
         return address;
     }
+
+    itype end(){
+        return address+length;
+    }
+
     unsigned int get_len(){
         return length;
+    }
+
+    vector<unsigned int> items(){
+        vector<unsigned int> v;
+        for (unsigned int i=0;i<length*8;i++){
+            if ((address[i>>3]>>(i&7))&1) v.push_back(i);
+        }
+        return v;
     }
 };
 
 class Dataset{
-    char* buffer;
+    dtype data;
     unsigned int trans_len;
-    unsigned int data_len;
 
     public:
-    Dataset(char* data_buffer, unsigned int dataset_length, unsigned int transaction_length):
-                    buffer(data_buffer),data_len(dataset_length),trans_len(transaction_length) {}
+    Dataset(unsigned int transaction_length):trans_len(transaction_length){}
 
-    Dataset(unsigned int dataset_length, unsigned int transaction_length):data_len(dataset_length),trans_len(transaction_length){
-        buffer=new char[data_len*trans_len];
-    }
+    Dataset(dtype data_buffer, unsigned int transaction_length):
+                    data(data_buffer), trans_len(transaction_length) {}
+    
+    Dataset(itype begin,  itype end, unsigned int transaction_length):
+                    data(begin, end), trans_len(transaction_length) {}
 
-    Transaction operator [] (int i){
-        if (i>=data_len){
+    Dataset(unsigned int transaction_length, unsigned int dataset_length):trans_len(transaction_length),data(trans_len*dataset_length){ }
+
+    Itemset operator [] (int i){
+        if (i*trans_len>=data.size()){
             throw overflow_error("Dataset index out of bound!");
         }
-        return Transaction(buffer+(i*trans_len), trans_len);
+        return Itemset(data.begin()+(i*trans_len), trans_len);
     }
+
+    void reserve(size_t items){
+        data.reserve(items*trans_len);
+    }
+
 
     unsigned int get_trans_len(){
         return trans_len;
     }
 
-    unsigned int get_data_len(){
-        return data_len;
+    unsigned int get_length(){
+        return data.size()/trans_len;
     }
 
-    char* get_buffer_address(){
-        return buffer;
+    etype* get_data(){
+        return data.data();
     }
-
-    ~Dataset(){
-        delete buffer;
+    size_t get_size(){
+        return data.size();
     }
 };
 
 int main(int argc, char* argv[]){
-    ifstream file ("mnist_train_25.dat",ios::binary|ios::ate);
-    int file_len;
     int trans_len=TRANS_LEN;
     char* buffer;
 
-    if (file.is_open()){
-        file_len = file.tellg();
-        file.seekg(0,ios::beg);
-        buffer = new char[file_len];
-        file.read(buffer,file_len);
-        file.close();
-    } else {
+    ifstream file ("mnist_train_25.dat",ios::binary);
+
+    if (!file.is_open()){
         cout<<"Failed to open file!!"<<endl;
+        exit(-1);
     }
 
-    Dataset D(buffer,file_len/trans_len,trans_len);
+    istreambuf_iterator<etype> begin(file), end;
+    dtype dat(begin,end);
+    file.close();
+    Dataset D(dat,trans_len);
 
     cout<<"The 25th byte is ";
-    for (int i=7;i>=0;i--) cout<<((D[0][24]>>i)&1);
+    for (int i=7;i>=0;i--) cout<< ((D[0][24]>>i)&1);
     cout<<endl;
 
-    cout<<"Length of the file = "<<file_len<<endl;
+
+    cout<<"The 2nd transaction: {";
+    auto items=D[1].items();
+    for(auto i=items.begin();i<items.end();i++) {cout<<" ";cout<<*i;cout<<" ";}
+    cout<<"}"<<endl;
+
+
+    cout<<"Length of the dataset = "<<D.get_length()<<endl;
     return 0;
 }
+
