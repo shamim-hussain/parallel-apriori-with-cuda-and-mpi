@@ -4,7 +4,6 @@
 
 int main(int argc, char* argv[]){
     int trans_len=TRANS_LEN;
-    char* buffer;
 
     ifstream file ("mnist_train_25.dat",ios::binary);
 
@@ -30,6 +29,27 @@ int main(int argc, char* argv[]){
 
 
     cout<<"Length of the dataset = "<<D.get_length()<<endl;
+
+    Itemset I1(trans_len);
+    I1.add_item(66);
+    I1.add_item(67);
+    cout<<"The itemset: {";
+    items=I1.items();
+    for(auto i=items.begin();i<items.end();i++) {cout<<" ";cout<<*i;cout<<" ";}
+    cout<<"}"<<endl;
+
+    unsigned sup = compute_support(I1,D);
+    cout<<"The support of I is "<<sup<<endl;
+
+    Itemset I2(trans_len);
+    I2.add_item(145);
+    I2.add_item(155);
+    Dataset P(trans_len);
+    P.push_back(I1);P.push_back(I2);
+
+    auto supports=compute_support(P,D);
+    cout<<"The supports are "<<supports[0]<<", "<< supports[1]<<endl;
+
     return 0;
 }
 
