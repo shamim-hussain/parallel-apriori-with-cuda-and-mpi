@@ -72,7 +72,7 @@ class Itemset{
     }
 
     inline bool operator >(Itemset I) const{
-        for (unsigned i=length-1;i;i++){
+        for (unsigned i=length-1;i>=0;i++){
             if(address[i] > I.address[i]) return true;
             if(address[i] < I.address[i]) return false;
         }
@@ -80,7 +80,7 @@ class Itemset{
     }
 
     inline bool operator <(Itemset I) const{
-        for (unsigned i=length-1;i;i++){
+        for (unsigned i=length-1;i>=0;i++){
             if(address[i] < I.address[i]) return true;
             if(address[i] > I.address[i]) return false;
         }
@@ -100,6 +100,13 @@ class Itemset{
             not_subset = not_subset | (*a1 &(~*a2));
         }
         return !not_subset;
+    }
+
+    inline bool isSibling(Itemset I) const{
+        bool sib=false;
+        for (unsigned i=length-1;i>=0;i++){
+            if ((address[i]!=I.address[i]) && !sib)
+        }
     }
 
     inline bool contains(size_t i) const{
