@@ -8,26 +8,29 @@ typedef unsigned int stype;
 typedef vector<stype> sstype;
 
 class Apriori{
-    unsigned level;
+    unsigned level=0;
     size_t trans_len;
-    Dataset* patterns;
-    sstype* supports;
-    stype minsup;
+    
 
     void get_C1(){
-        Dataset C1(trans_len,trans_len<<3);
-        for (unsigned i=0; i<(trans_len<<3);i++){
+        size_t pat_size=trans_len<<3;
+        Dataset C1(trans_len,pat_size);
+        for (unsigned i=0; i<pat_size;i++){
             Itemset I(trans_len);
             I.add_item(i);
             C1.push_back(I);
         }
-        patterns->swap(C1);
+        patterns.swap(C1);
+        supports.resize(pat_size);
     }
 
     public:
-    Apriori(Dataset* pat, sstype* sups, stype msup, unsigned lvl=0):
-                level(lvl), trans_len(pat->get_trans_len()), patterns(pat),
-                supports(sups), minsup(msup){
+    stype minsup;
+    Dataset patterns;
+    sstype supports;
+
+    Apriori(size_t t_len, stype msup):trans_len(t_len),
+                        minsup(msup),patterns(t_len){
     }
 
     inline void extend_tree(){
@@ -38,7 +41,17 @@ class Apriori{
     }
 
     inline void remove_infrequent(){
-        
+        sstype newsup;
+        Dataset newpat(trans_len);
+
+        for (size_t i = 0; i<supports.size();i++){
+            if (supports[i]>=minsup){
+                newpat.push_back(patterns[i]);
+                newsup.push_back(supports[i]);
+            }
+        }
+        patterns.swap(newpat);
+        supports.swap(newsup);
     }
 
     inline unsigned int get_level(){

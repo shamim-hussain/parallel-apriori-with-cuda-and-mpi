@@ -2,6 +2,7 @@
 #define __FUNCTIONS_H
 
 #include "dataset.h"
+#include "apriori.h"
 
 unsigned int compute_support(Itemset& x, Dataset& D){
     unsigned int sup=0;
@@ -24,6 +25,20 @@ vector<unsigned int> compute_support(Dataset& P, Dataset& D){
     return supports;
 }
 
+void compute_support(Dataset& P, Dataset& D, sstype &S){
+    unsigned int sup;
+    vector<unsigned int> supports(P.get_length());
+    for (size_t j=0;j<P.get_length();j++){
+        sup=0;
+        for (size_t i=0;i<D.get_length();i++){
+            if (P[j].is_subset_of(D[i])) sup++;
+        }
+        supports[j]=sup;
+    }
+    S.swap(supports);
+}
+
+
 // C version (for Neehal and Shoron)
 void compute_support(char* patterns, size_t num_patterns, 
                         char*  dataset, size_t num_data,
@@ -33,14 +48,14 @@ void compute_support(char* patterns, size_t num_patterns,
     char* pat_j;
     char* dat_i;
 
-    size_t i,j,k;
-
+    size_t j,k;
+    char* dataset_end=dataset+num_data*trans_len;
     // Outer loop - iterates over patterns
     for (j=0,pat_j=patterns; j<num_patterns; j++, pat_j+=trans_len){
         sup_j=0;
 
         // Inner loop - iterates over transactions
-        for (i=0,dat_i=dataset; i<num_data; i++, dat_i+=trans_len){
+        for (dat_i=dataset; dat_i<dataset_end; dat_i+=trans_len){
             not_subset=0;
 
             // Innermost loop - iterates over bytes
