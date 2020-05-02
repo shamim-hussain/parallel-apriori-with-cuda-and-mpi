@@ -4,6 +4,20 @@
 #include "functions.h"
 #include "apriori.h"
 
+using namespace std;
+#define TRANS_LEN 25;
+
+
+ostream& operator << (ostream &out, vector<size_t> items){
+    auto i=items.begin();
+    out<<*i;
+    i++;
+    for (;i!=items.end();i++){
+        out<<", "<<*i;
+    }
+    return out;
+}
+
 int main(int argc, char* argv[]){
     size_t trans_len=TRANS_LEN;
 
@@ -99,7 +113,7 @@ int main(int argc, char* argv[]){
     cout<<"Length of C2 = "<<apriori.supports.size()<<endl;
     items=apriori.patterns[199].items();
     cout<<"The itemset: {";
-    for(auto i=items.begin();i<items.end();i++) {cout<<" ";cout<<*i;cout<<" ";}
+    cout<<items;
     cout<<"}"<<endl;
 
     compute_support(apriori.patterns.get_data(), apriori.patterns.get_length(),

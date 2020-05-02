@@ -5,8 +5,6 @@
 #include <assert.h>
 using namespace std;
 
-#define TRANS_LEN 25
-
 
 typedef char etype;
 typedef vector<etype> dtype;
