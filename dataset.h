@@ -1,3 +1,6 @@
+#ifndef __DATASET_H
+#define __DATASET_H
+
 #include <vector>
 #include <assert.h>
 using namespace std;
@@ -11,6 +14,9 @@ typedef dtype::iterator itype;
 
 
 class Itemset{
+
+    friend class Dataset;
+
     itype address;
     size_t length;
     dtype data;
@@ -44,7 +50,7 @@ class Itemset{
     Itemset operator &(Itemset I) const{
         Itemset ret(length);
         for (unsigned i=0;i<length;i++){
-            ret[i]=address[i] & I[i];
+            ret[i]=address[i] & I.address[i];
         }
         return ret;
     }
@@ -52,24 +58,46 @@ class Itemset{
     inline Itemset operator |(Itemset I) const{
         Itemset ret(length);
         for (unsigned i=0;i<length;i++){
-            ret[i]=address[i] | I[i];
+            ret[i]=address[i] | I.address[i];
         }
         return ret;
     }
 
     inline Itemset operator ~() const{
         Itemset ret(length);
-        for (unsigned i=0;i<length;i++){
-            ret[i]=~address[i];
+        for (itype a1=address,a2=ret.address;a1!=address+length;a1++,a2++){
+            *a2=~*a1;
         }
         return ret;
     }
 
-    inline bool is_subset_of(Itemset I) const{
-        assert (length == I.length);
-        bool not_subset=false;
+    inline bool operator >(Itemset I) const{
+        for (unsigned i=length-1;i;i++){
+            if(address[i] > I.address[i]) return true;
+            if(address[i] < I.address[i]) return false;
+        }
+        return false;
+    }
+
+    inline bool operator <(Itemset I) const{
+        for (unsigned i=length-1;i;i++){
+            if(address[i] < I.address[i]) return true;
+            if(address[i] > I.address[i]) return false;
+        }
+        return false;
+    }
+
+    inline bool operator == (Itemset I) const{
         for (unsigned i=0;i<length;i++){
-            not_subset = not_subset || (address[i]&(~I[i]));
+            if(address[i] != I.address[i]) return false;
+        }
+        return true;
+    }
+
+    inline bool is_subset_of(Itemset I) const{
+        int not_subset=0;
+        for (itype a1=address,a2=I.address;a1!=address+length;a1++,a2++){
+            not_subset = not_subset | (*a1 &(~*a2));
         }
         return !not_subset;
     }
@@ -87,6 +115,17 @@ class Itemset{
         return length;
     }
 
+    inline size_t count_items(){
+        size_t num_items=0;
+        etype c;
+        for (itype b=address;b!=address+length;b++){
+            c=*b;
+            num_items+=(c&1)+((c>>1)&1)+((c>>2)&1)+((c>>3)&1)
+                            +((c>>4)&1)+((c>>5)&1)+((c>>6)&1)+((c>>7)&1);
+        }
+        return num_items;
+    }
+
     vector<size_t> items() const{
         vector<size_t> v;
         for (size_t i=0;i<length*8;i++){
@@ -94,8 +133,6 @@ class Itemset{
         }
         return v;
     }
-    
-    friend class Dataset;
 };
 
 class Dataset{
@@ -103,6 +140,7 @@ class Dataset{
     size_t trans_len;
 
     public:
+
     Dataset(size_t transaction_length):trans_len(transaction_length){}
 
     Dataset(dtype data_buffer, size_t transaction_length):
@@ -112,7 +150,9 @@ class Dataset{
                     data(begin, end), trans_len(transaction_length) {}
 
     Dataset(size_t transaction_length, size_t dataset_length):
-            data(trans_len*dataset_length), trans_len(transaction_length){ }
+                                trans_len(transaction_length){
+        data.reserve(trans_len*dataset_length);
+    }
 
     inline Itemset operator [] (size_t i){
         assert (i*trans_len<data.size());
@@ -122,7 +162,6 @@ class Dataset{
     inline void reserve(size_t items){
         data.reserve(items*trans_len);
     }
-
 
     inline size_t get_trans_len() const{
         return trans_len;
@@ -139,67 +178,19 @@ class Dataset{
         return data.size();
     }
 
-    inline void push_back(const Itemset& I){
-        assert (I.length==trans_len);
+    inline void push_back(const Itemset I){
         data.insert(data.end(), I.begin(),I.end());
     }
+
     inline Itemset pop_back(){
         Itemset back(data.end()-trans_len,data.end());
         data.resize(data.size()-trans_len);
         return back;
     }
+
+    inline void swap(Dataset D){
+        data.swap(D.data);
+    }
 };
 
-
-
-unsigned int compute_support(Itemset& x, Dataset& D){
-    unsigned int sup=0;
-    for (size_t i=0;i<D.get_length();i++){
-        if (x.is_subset_of(D[i])) sup++;
-    }
-    return sup;
-}
-
-vector<unsigned int> compute_support(Dataset& P, Dataset& D){
-    unsigned int sup;
-    vector<unsigned int> supports(P.get_length());
-    for (size_t j=0;j<P.get_length();j++){
-        sup=0;
-        for (size_t i=0;i<D.get_length();i++){
-            if (P[j].is_subset_of(D[i])) sup++;
-        }
-        supports[j]=sup;
-    }
-    return supports;
-}
-
-// C version (for Neehal and Shoron)
-void compute_support(char* patterns, size_t num_patterns, 
-                        char*  dataset, size_t num_data,
-                        size_t trans_len, unsigned int* supports)
-{
-    unsigned int sup_j, not_subset;
-    char* pat_j;
-    char* dat_i;
-
-    size_t i,j,k;
-
-    // Outer loop - iterates over patterns
-    for (j=0,pat_j=patterns; j<num_patterns; j++, pat_j+=trans_len){
-        sup_j=0;
-
-        // Inner loop - iterates over transactions
-        for (i=0,dat_i=dataset; i<num_data; i++, dat_i+=trans_len){
-            not_subset=0;
-
-            // Innermost loop - iterates over bytes
-            for (k=0; k<trans_len; k++){
-                not_subset = not_subset | (pat_j[k]&(~dat_i[k]));
-            }
-
-            sup_j = sup_j + !not_subset;
-        }
-
-        supports[j]=sup_j;
-    }
-}
+#endif
