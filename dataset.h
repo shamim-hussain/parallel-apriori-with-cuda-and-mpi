@@ -12,6 +12,16 @@ typedef char etype;
 typedef vector<etype> dtype;
 typedef dtype::iterator itype;
 
+// #define count_bits(c) (c&1)+((c>>1)&1)+((c>>2)&1)+((c>>3)&1)+((c>>4)&1)+((c>>5)&1)+((c>>6)&1)+((c>>7)&1)
+const size_t  count_bits[]={0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2,
+ 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3,
+  4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2,
+   3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5,
+    5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3,
+     4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 2, 3, 3, 4, 3, 4, 4, 5, 
+     3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 2, 3, 3, 4, 3, 
+     4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 3, 4,
+      4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8};
 
 class Itemset{
 
@@ -73,16 +83,16 @@ class Itemset{
 
     inline bool operator >(Itemset I) const{
         for (unsigned i=length-1;i>=0;i++){
-            if(address[i] > I.address[i]) return true;
-            if(address[i] < I.address[i]) return false;
+            if((unsigned char)address[i] > (unsigned char)I.address[i]) return true;
+            if((unsigned char)address[i] < (unsigned char)I.address[i]) return false;
         }
         return false;
     }
 
     inline bool operator <(Itemset I) const{
         for (unsigned i=length-1;i>=0;i++){
-            if(address[i] < I.address[i]) return true;
-            if(address[i] > I.address[i]) return false;
+            if((unsigned char)address[i] < (unsigned char)I.address[i]) return true;
+            if((unsigned char)address[i] > (unsigned char)I.address[i]) return false;
         }
         return false;
     }
@@ -102,11 +112,28 @@ class Itemset{
         return !not_subset;
     }
 
-    inline bool isSibling(Itemset I) const{
-        bool sib=false;
-        for (unsigned i=length-1;i>=0;i++){
-            if ((address[i]!=I.address[i]) && !sib)
+    inline size_t match_start(Itemset I){
+        size_t bits=0;
+        etype a1,a2,b1,b2; 
+        for(unsigned i=0;i<length;i++){
+            a1=address[i];
+            a2=I.address[i];
+            if (a1==a2){
+                bits+=count_bits[(unsigned char)a1];
+            } else {
+                while (a1)
+                {
+                    b1=a1&1;
+                    b2=a2&1;
+                    if (b1!=b2) break;
+                    bits+=b1;
+                    a1>>=1;
+                    a2>>=1;
+                }
+                break;
+            }
         }
+        return bits;
     }
 
     inline bool contains(size_t i) const{
@@ -127,8 +154,7 @@ class Itemset{
         etype c;
         for (itype b=address;b!=address+length;b++){
             c=*b;
-            num_items+=(c&1)+((c>>1)&1)+((c>>2)&1)+((c>>3)&1)
-                            +((c>>4)&1)+((c>>5)&1)+((c>>6)&1)+((c>>7)&1);
+            num_items+=count_bits[(unsigned char)c];
         }
         return num_items;
     }
