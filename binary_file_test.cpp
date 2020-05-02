@@ -39,7 +39,9 @@ int main(int argc, char* argv[]){
     // Create a pattern and compute its support
     Itemset I1(trans_len);
     I1.add_item(66);
-    I1.add_item(67);
+    I1.add_item(71);
+    I1.add_item(75);
+    I1.add_item(76);
     cout<<"The itemset: {";
     items=I1.items();
     for(auto i=items.begin();i<items.end();i++) {cout<<" ";cout<<*i;cout<<" ";}
@@ -50,10 +52,10 @@ int main(int argc, char* argv[]){
 
     // Create a second patter
     Itemset I2(trans_len);
-    I2.add_item(6);
-    I2.add_item(8);
+    I2.add_item(66);
+    I2.add_item(71);
     I2.add_item(146);
-    I2.add_item(7);
+    I2.add_item(75);
     
     // Create the Patterns set and add the patterns
     Dataset P(trans_len);
@@ -68,40 +70,45 @@ int main(int argc, char* argv[]){
     for(auto i=items.begin();i<items.end();i++) {cout<<" ";cout<<*i;cout<<" ";}
     cout<<"}"<<endl;
 
-    Apriori apriori(trans_len, 1000);
+    cout<<"Match I1 to I1 = "<<I1.match_start(I1)<<endl;
+    cout<<"Match I2 to I2 = "<<I2.match_start(I2)<<endl;
+    cout<<"Match I1 to I2 = "<<I1.match_start(I2)<<endl;
 
-    //C1
-    apriori.extend_tree();
-    cout<<"Length of C1 = "<<apriori.patterns.get_length()<<endl;
-    items=apriori.patterns[199].items();
-    cout<<"The itemset: {";
-    for(auto i=items.begin();i<items.end();i++) {cout<<" ";cout<<*i;cout<<" ";}
-    cout<<"}"<<endl;
+
+    // Apriori apriori(trans_len, 1000);
+
+    // //C1
+    // apriori.extend_tree();
+    // cout<<"Length of C1 = "<<apriori.patterns.get_length()<<endl;
+    // items=apriori.patterns[199].items();
+    // cout<<"The itemset: {";
+    // for(auto i=items.begin();i<items.end();i++) {cout<<" ";cout<<*i;cout<<" ";}
+    // cout<<"}"<<endl;
     
-    compute_support(apriori.patterns.get_data(), apriori.patterns.get_length(),
-     D.get_data(), D.get_length(), trans_len, apriori.supports.data());
-    cout<<"Support of 133 is "<<apriori.supports[133]<<endl;
-    cout<<"Size of P = " << apriori.patterns.get_length()<<endl;
+    // compute_support(apriori.patterns.get_data(), apriori.patterns.get_length(),
+    //  D.get_data(), D.get_length(), trans_len, apriori.supports.data());
+    // cout<<"Support of 133 is "<<apriori.supports[133]<<endl;
+    // cout<<"Size of P = " << apriori.patterns.get_length()<<endl;
 
-    apriori.remove_infrequent();
-    cout<<"After infrequent removal size of S = " << apriori.supports.size()<<endl;
+    // apriori.remove_infrequent();
+    // cout<<"After infrequent removal size of S = " << apriori.supports.size()<<endl;
     
-    //C2
-    apriori.extend_tree();
-    cout<<"Length of C2 = "<<apriori.patterns.get_length()<<endl;
-    cout<<"Length of C2 = "<<apriori.supports.size()<<endl;
-    items=apriori.patterns[199].items();
-    cout<<"The itemset: {";
-    for(auto i=items.begin();i<items.end();i++) {cout<<" ";cout<<*i;cout<<" ";}
-    cout<<"}"<<endl;
+    // //C2
+    // apriori.extend_tree();
+    // cout<<"Length of C2 = "<<apriori.patterns.get_length()<<endl;
+    // cout<<"Length of C2 = "<<apriori.supports.size()<<endl;
+    // items=apriori.patterns[199].items();
+    // cout<<"The itemset: {";
+    // for(auto i=items.begin();i<items.end();i++) {cout<<" ";cout<<*i;cout<<" ";}
+    // cout<<"}"<<endl;
 
-    compute_support(apriori.patterns.get_data(), apriori.patterns.get_length(),
-     D.get_data(), D.get_length(), trans_len, apriori.supports.data());
-    cout<<"Support of 133 is "<<apriori.supports[133]<<endl;
-    cout<<"Size of P = " << apriori.patterns.get_length()<<endl;
+    // compute_support(apriori.patterns.get_data(), apriori.patterns.get_length(),
+    //  D.get_data(), D.get_length(), trans_len, apriori.supports.data());
+    // cout<<"Support of 133 is "<<apriori.supports[133]<<endl;
+    // cout<<"Size of P = " << apriori.patterns.get_length()<<endl;
 
-    apriori.remove_infrequent();
-    cout<<"After infrequent removal size of S = " << apriori.supports.size()<<endl;
+    // apriori.remove_infrequent();
+    // cout<<"After infrequent removal size of S = " << apriori.supports.size()<<endl;
 
     // // C version (For Neehal and Shoron)
     // vector<unsigned int> supports(P.get_length(),0);
