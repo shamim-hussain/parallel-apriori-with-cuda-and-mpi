@@ -78,7 +78,7 @@ class Apriori{
             level++;
         }
         else if (level==1){
-            get_CN();
+            get_C2();
             level++;
         }
         else{

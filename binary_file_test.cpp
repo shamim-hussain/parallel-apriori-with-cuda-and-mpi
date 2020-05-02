@@ -75,7 +75,7 @@ int main(int argc, char* argv[]){
     // cout<<"Match I1 to I2 = "<<I1.match_start(I2)<<endl;
 
 
-    Apriori apriori(trans_len, 1000);
+    Apriori apriori(trans_len, 18000);
 
     //C1
     apriori.extend_tree();
@@ -88,12 +88,12 @@ int main(int argc, char* argv[]){
     compute_support(apriori.patterns.get_data(), apriori.patterns.get_length(),
      D.get_data(), D.get_length(), trans_len, apriori.supports.data());
     cout<<"Support of 133 is "<<apriori.supports[133]<<endl;
-    cout<<"Size of P = " << apriori.patterns.get_length()<<endl;
 
     apriori.remove_infrequent();
     cout<<"After infrequent removal size of S = " << apriori.supports.size()<<endl;
     
     //C2
+    cout<<endl;
     apriori.extend_tree();
     cout<<"Length of C2 = "<<apriori.patterns.get_length()<<endl;
     cout<<"Length of C2 = "<<apriori.supports.size()<<endl;
@@ -105,10 +105,53 @@ int main(int argc, char* argv[]){
     compute_support(apriori.patterns.get_data(), apriori.patterns.get_length(),
      D.get_data(), D.get_length(), trans_len, apriori.supports.data());
     cout<<"Support of 133 is "<<apriori.supports[133]<<endl;
-    cout<<"Size of P = " << apriori.patterns.get_length()<<endl;
 
     apriori.remove_infrequent();
     cout<<"After infrequent removal size of S = " << apriori.supports.size()<<endl;
+
+    //C3
+    cout<<endl;
+    apriori.extend_tree();
+    cout<<"Length of C3 = "<<apriori.patterns.get_length()<<endl;
+    cout<<"Length of C3 = "<<apriori.supports.size()<<endl;
+    items=apriori.patterns[199].items();
+    cout<<"The itemset: {";
+    for(auto i=items.begin();i<items.end();i++) {cout<<" ";cout<<*i;cout<<" ";}
+    cout<<"}"<<endl;
+
+    compute_support(apriori.patterns.get_data(), apriori.patterns.get_length(),
+     D.get_data(), D.get_length(), trans_len, apriori.supports.data());
+    cout<<"Support of 133 is "<<apriori.supports[133]<<endl;
+
+    apriori.remove_infrequent();
+    cout<<"After infrequent removal size of S = " << apriori.supports.size()<<endl;
+
+
+    //C4
+    cout<<endl;
+    apriori.extend_tree();
+    cout<<"Length of C4 = "<<apriori.patterns.get_length()<<endl;
+    cout<<"Length of C4 = "<<apriori.supports.size()<<endl;
+    items=apriori.patterns[199].items();
+    cout<<"The itemset: {";
+    for(auto i=items.begin();i<items.end();i++) {cout<<" ";cout<<*i;cout<<" ";}
+    cout<<"}"<<endl;
+
+    compute_support(apriori.patterns.get_data(), apriori.patterns.get_length(),
+     D.get_data(), D.get_length(), trans_len, apriori.supports.data());
+    cout<<"Support of 0 is "<<apriori.supports[0]<<endl;
+
+    apriori.remove_infrequent();
+    cout<<"After infrequent removal size of S = " << apriori.supports.size()<<endl;
+
+
+    //print
+    cout<<endl;
+    items=apriori.patterns[33].items();
+    cout<<"The pattern 33 :{";
+    for(auto i=items.begin();i<items.end();i++) {cout<<" ";cout<<*i;cout<<" ";}
+    cout<<"}"<<endl;
+    cout<<"Support of 33 is "<<apriori.supports[33]<<endl;
 
     return 0;
 }
