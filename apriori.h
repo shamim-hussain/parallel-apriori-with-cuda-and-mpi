@@ -8,14 +8,14 @@ typedef unsigned int stype;
 typedef vector<stype> sstype;
 
 class Apriori{
-    unsigned level=0;
+    size_t level=0;
     size_t trans_len;
     
 
     void get_C1(){
         size_t pat_size=trans_len<<3;
         Dataset C1(trans_len,pat_size);
-        for (unsigned i=0; i<pat_size;i++){
+        for (size_t i=0; i<pat_size;i++){
             Itemset I(trans_len);
             I.add_item(i);
             C1.push_back(I);
@@ -28,8 +28,8 @@ class Apriori{
         size_t len=patterns.get_length();
         size_t pat_size=(len*(len-1))>>1;
         Dataset C2(trans_len,pat_size);
-        for (unsigned i=0; i<len;i++){
-            for (unsigned j=i+1;j<len;j++){
+        for (size_t i=0; i<len;i++){
+            for (size_t j=i+1;j<len;j++){
                 C2.push_back(patterns[i]|patterns[j]);
             }
         }
@@ -38,7 +38,29 @@ class Apriori{
     }
 
     void get_CN(){
-        
+        size_t len=patterns.get_length();
+        Dataset CN(trans_len);
+        size_t sib;
+        size_t km1=level-1;
+
+        //Intialize sibling range
+        for (sib = 1; sib<len; sib++){
+            if (patterns[0].match_start(patterns[sib])!=km1) break;
+        }
+
+        for (size_t i=0; i<len-1;i++){
+            if (i==sib){
+                for (sib=i+1; sib<len; sib++){
+                    if (patterns[i].match_start(patterns[sib])!=km1) break;
+                }
+            }
+
+            for (size_t j=i+1;j<sib;j++){
+                CN.push_back(patterns[i]|patterns[j]);
+            }
+        }
+        patterns.swap(CN);
+        supports.resize(patterns.get_length());
     }
 
     public:
@@ -56,7 +78,11 @@ class Apriori{
             level++;
         }
         else if (level==1){
-            get_C2();
+            get_CN();
+            level++;
+        }
+        else{
+            get_CN();
             level++;
         }
     }
