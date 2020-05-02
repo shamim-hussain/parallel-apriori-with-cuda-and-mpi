@@ -188,8 +188,11 @@ class Dataset{
         return back;
     }
 
-    inline void swap(Dataset D){
+    inline void swap(Dataset& D){
         data.swap(D.data);
+    }
+    inline void swap_data(dtype& d){
+        data.swap(d);
     }
 };
 

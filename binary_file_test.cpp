@@ -17,7 +17,8 @@ int main(int argc, char* argv[]){
     istreambuf_iterator<etype> begin(file), end;
     dtype dat(begin,end);
     file.close();
-    Dataset D(dat,trans_len);
+    Dataset D(trans_len);
+    D.swap_data(dat);
 
     cout<<"The 5th byte is ";
     for (int i=7;i>=0;i--) cout<< ((D[0][4]>>i)&1);
@@ -64,13 +65,15 @@ int main(int argc, char* argv[]){
     cout<<"}"<<endl;
 
     Dataset C1(trans_len);
-    Apriori apriori(&C1);
+    sstype sups;
+    Apriori apriori(&C1,&sups, 1000);
     apriori.extend_tree();
     cout<<"Length of C1 = "<<C1.get_length()<<endl;
-    items=C1[196].items();
+    items=C1[199].items();
     cout<<"The itemset: {";
     for(auto i=items.begin();i<items.end();i++) {cout<<" ";cout<<*i;cout<<" ";}
     cout<<"}"<<endl;
+
     // // C version (For Neehal and Shoron)
     // vector<unsigned int> supports(P.get_length(),0);
     // compute_support(P.get_data(), P.get_length(),
