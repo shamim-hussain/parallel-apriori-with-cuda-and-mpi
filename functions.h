@@ -71,6 +71,38 @@ void compute_support(char* patterns, size_t num_patterns,
 }
 
 
+// C version (for Neehal and Shoron)
+// void compute_support(char* patterns, size_t num_patterns, 
+//                         char*  dataset, size_t num_data,
+//                         size_t trans_len, unsigned int* supports)
+// {
+//     int not_subset;
+//     char* pat_j, *dat_i;
+//     unsigned int* sup_j;
+//     size_t k;
+
+//     char* dataset_end=dataset+num_data*trans_len;
+//     unsigned int* supports_end=supports+num_patterns;
+
+//     // Inner loop - iterates over transactions
+//     for (dat_i=dataset; dat_i<dataset_end; dat_i+=trans_len){
+        
+//         // Outer loop - iterates over patterns
+//         for (sup_j=supports,pat_j=patterns; sup_j<supports_end; sup_j++, pat_j+=trans_len){
+//             // Innermost loop - iterates over bytes
+//             not_subset=0;
+            
+//             for (k=0; k<trans_len; k++){
+//                 not_subset = not_subset | (pat_j[k]&(~dat_i[k]));
+//             }
+
+//             *sup_j=*sup_j+!not_subset;
+//         }    
+//     }
+// }
+
+
+
 Dataset get_C1(size_t trans_len){
     Dataset C1(trans_len);
     for (unsigned i=0; i<(trans_len<<3);i++){

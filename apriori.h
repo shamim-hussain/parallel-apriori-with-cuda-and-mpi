@@ -24,6 +24,23 @@ class Apriori{
         supports.resize(pat_size);
     }
 
+    void get_C2(){
+        size_t len=patterns.get_length();
+        size_t pat_size=(len*(len-1))>>1;
+        Dataset C2(trans_len,pat_size);
+        for (unsigned i=0; i<len;i++){
+            for (unsigned j=i+1;j<len;j++){
+                C2.push_back(patterns[i]|patterns[j]);
+            }
+        }
+        patterns.swap(C2);
+        supports.resize(pat_size);
+    }
+
+    void get_CN(){
+        
+    }
+
     public:
     stype minsup;
     Dataset patterns;
@@ -36,6 +53,10 @@ class Apriori{
     inline void extend_tree(){
         if (!level){
             get_C1();
+            level++;
+        }
+        else if (level==1){
+            get_C2();
             level++;
         }
     }

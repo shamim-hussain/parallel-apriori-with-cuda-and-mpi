@@ -65,6 +65,8 @@ int main(int argc, char* argv[]){
     // cout<<"}"<<endl;
 
     Apriori apriori(trans_len, 1000);
+
+    //C1
     apriori.extend_tree();
     cout<<"Length of C1 = "<<apriori.patterns.get_length()<<endl;
     auto items=apriori.patterns[199].items();
@@ -79,6 +81,24 @@ int main(int argc, char* argv[]){
 
     apriori.remove_infrequent();
     cout<<"After infrequent removal size of S = " << apriori.supports.size()<<endl;
+    
+    //C2
+    apriori.extend_tree();
+    cout<<"Length of C2 = "<<apriori.patterns.get_length()<<endl;
+    cout<<"Length of C2 = "<<apriori.supports.size()<<endl;
+    items=apriori.patterns[199].items();
+    cout<<"The itemset: {";
+    for(auto i=items.begin();i<items.end();i++) {cout<<" ";cout<<*i;cout<<" ";}
+    cout<<"}"<<endl;
+
+    compute_support(apriori.patterns.get_data(), apriori.patterns.get_length(),
+     D.get_data(), D.get_length(), trans_len, apriori.supports.data());
+    cout<<"Support of 133 is "<<apriori.supports[133]<<endl;
+    cout<<"Size of P = " << apriori.patterns.get_length()<<endl;
+
+    apriori.remove_infrequent();
+    cout<<"After infrequent removal size of S = " << apriori.supports.size()<<endl;
+
     // // C version (For Neehal and Shoron)
     // vector<unsigned int> supports(P.get_length(),0);
     // compute_support(P.get_data(), P.get_length(),
