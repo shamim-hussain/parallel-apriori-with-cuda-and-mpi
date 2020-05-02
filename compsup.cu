@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include <cuda.h>
 #include <cuda_runtime.h>
+#include "compsup.h"
 
 char* g_patterns=NULL;
 char* g_dataset=NULL;

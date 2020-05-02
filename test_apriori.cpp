@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include "dataset.h"
-#include "functions.h"
+#include "compsup.h"
 #include "apriori.h"
 
 using namespace std;
