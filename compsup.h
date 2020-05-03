@@ -19,6 +19,8 @@ public:
 					threadsCount(num_threads),g_trans_len(trans_len),
 					g_patterns(NULL),g_dataset(NULL),g_supports(NULL){}
 	void set_data(char*  dataset, size_t num_data);
+	void allocate_data(size_t num_data);
+	inline char* get_data_addr();
 	void set_patterns(char* patterns, size_t num_patterns);
 	void compute_support();
 	void get_supports(unsigned int* supports);

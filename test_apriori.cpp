@@ -15,7 +15,7 @@ using namespace std;
 
 #define _FILE_NAME "mnist_train_25.dat"
 #define _TRANS_LEN 25
-#define _MINSUP 60000
+#define _MINSUP 30000
 #define _NUM_THREADS 256
 
 
@@ -60,25 +60,26 @@ int main(int argc, char* argv[]){
     MPI_File_get_size(in_file, &filesize);
 
     size_t tot_trans = filesize/trans_len;
+    size_t each_trans = (tot_trans+g_mpiSize-1)/g_mpiSize;
 
-    dtype dat(filesize);
+    size_t trans_start = each_trans*g_mpiRank;
+    size_t trans_end = trans_start+each_trans;
+    if (trans_end>tot_trans) trans_end=tot_trans;
+    size_t trans_read = trans_start-trans_end;
 
-    MPI_File_read(in_file, dat.data(), filesize, _MPI_ELM_DTYPE, &mpistat);
+    size_t file_start = trans_start*trans_len;
+    size_t file_end = trans_end*trans_len;
+    size_t file_read = file_end-file_start;
+
+    dtype dat(file_read);
+
+    MPI_File_read_at(in_file, (MPI_Offset)file_start, dat.data(),
+                             file_read, _MPI_ELM_DTYPE, &mpistat);
 
     MPI_File_close(&in_file);
     
     cout<<"File Size = "<<filesize<<endl;
 
-    // ifstream file (file_name,ios::binary);
-
-    // if (!file.is_open()){
-    //     cout<<"Failed to open file!!"<<endl;
-    //     exit(-1);
-    // }
-
-    // istreambuf_iterator<etype> begin(file), end;
-    // dtype dat(begin,end);
-    // file.close();
 
     Dataset dataset(trans_len);
     dataset.swap_data(dat);
