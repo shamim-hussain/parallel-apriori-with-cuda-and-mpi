@@ -1,6 +1,7 @@
 #ifndef __COMPSUP_H
 #define __COMPSUP_H
 
+void cuda_init(int myrank);
 
 class Compute{
 	char* g_patterns;

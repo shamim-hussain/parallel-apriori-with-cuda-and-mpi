@@ -1,33 +1,45 @@
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
+#include <mpi.h>
+
 #include "dataset.h"
 #include "compsup.h"
 #include "apriori.h"
+
 
 using namespace std;
 
 #define _FILE_NAME "mnist_train_25.dat"
 #define _TRANS_LEN 25
-#define _MINSUP 20000
+#define _MINSUP 30000
 #define _NUM_THREADS 256
 
 
-ostream& operator << (ostream &out, vector<size_t> items){
-    vector<size_t>::iterator i=items.begin();
-    out<<*i;
-    i++;
-    for (;i!=items.end();i++){
-        out<<" "<<*i;
-    }
-    return out;
-}
+
+// Size of the MPI COMM
+int g_mpiSize=1;
+
+// Rank of the process in MPI
+int g_mpiRank=0;
+
+
+
+ostream& operator << (ostream &out, vector<size_t> items);
+
 
 int main(int argc, char* argv[]){
     size_t trans_len=_TRANS_LEN;
     size_t minsup = _MINSUP;
     const char* file_name = _FILE_NAME;
     unsigned int num_threads = _NUM_THREADS;
+
+    // initialize MPI
+    MPI_Init(&argc,&argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &g_mpiSize);
+    MPI_Comm_rank(MPI_COMM_WORLD, &g_mpiRank); 
+
+    cuda_init(g_mpiRank);
 
     ifstream file (file_name,ios::binary);
 
@@ -73,4 +85,18 @@ int main(int argc, char* argv[]){
     } while (apriori.patterns.get_length()>1);
 
     compute.free_all();
+    
+    // Finalize MPI
+    MPI_Finalize();
+}
+
+
+ostream& operator << (ostream &out, vector<size_t> items){
+    vector<size_t>::iterator i=items.begin();
+    out<<*i;
+    i++;
+    for (;i!=items.end();i++){
+        out<<" "<<*i;
+    }
+    return out;
 }

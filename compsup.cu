@@ -75,5 +75,23 @@ void Compute::free_all(){
 }
 
 
+// Function to initialize CUDA device
+void cuda_init(int myrank)
+{
+    int cudaDeviceCount;
+    cudaError_t cE;
+    
+    if( (cE = cudaGetDeviceCount( &cudaDeviceCount)) != cudaSuccess ){
+        printf(" Unable to determine cuda device count, error is %d, count is %d\n",
+                                                                cE, cudaDeviceCount );
+        exit(-1);
+    }
+
+    if( (cE = cudaSetDevice( myrank % cudaDeviceCount )) != cudaSuccess ){
+        printf(" Unable to have rank %d set to cuda device %d, error is %d \n",
+        myrank, (myrank % cudaDeviceCount), cE);
+        exit(-1);
+    } 
+}
 
 
