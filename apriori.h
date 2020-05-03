@@ -8,7 +8,7 @@ typedef unsigned int stype;
 typedef vector<stype> sstype;
 
 class Apriori{
-    size_t level=0;
+    size_t level;
     size_t trans_len;
     
 
@@ -68,7 +68,7 @@ class Apriori{
     Dataset patterns;
     sstype supports;
 
-    Apriori(size_t t_len, stype msup):trans_len(t_len),
+    Apriori(size_t t_len, stype msup):level(0),trans_len(t_len),
                         minsup(msup),patterns(t_len){
     }
 

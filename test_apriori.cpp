@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <stdlib.h>
 #include "dataset.h"
 #include "compsup.h"
 #include "apriori.h"
@@ -13,7 +14,7 @@ using namespace std;
 
 
 ostream& operator << (ostream &out, vector<size_t> items){
-    auto i=items.begin();
+    vector<size_t>::iterator i=items.begin();
     out<<*i;
     i++;
     for (;i!=items.end();i++){
