@@ -15,9 +15,8 @@ using namespace std;
 
 #define _FILE_NAME "mnist_train_25.dat"
 #define _TRANS_LEN 25
-#define _MINSUP 30000
+#define _MINSUP 6000
 #define _NUM_THREADS 256
-
 
 
 
