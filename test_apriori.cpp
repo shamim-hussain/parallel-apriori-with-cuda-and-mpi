@@ -47,16 +47,18 @@ int main(int argc, char* argv[]){
     MPI_Init(&argc,&argv);
     MPI_Comm_size(MPI_COMM_WORLD, &g_mpiSize);
     MPI_Comm_rank(MPI_COMM_WORLD, &g_mpiRank); 
-
-    cuda_init(g_mpiRank);
     
-
     if (MPI_File_open(MPI_COMM_WORLD, file_name, MPI_MODE_RDONLY, MPI_INFO_NULL, &in_file )) {
         cout<< "Unable to open file!"<<endl;
+        MPI_Finalize();
         exit(-1);
     }
 
+    cuda_init(g_mpiRank);
+
+    Compute compute(trans_len, num_threads);
     
+
     MPI_File_get_size(in_file, &filesize);
 
     size_t tot_trans = filesize/trans_len;
@@ -71,24 +73,16 @@ int main(int argc, char* argv[]){
     size_t file_end = trans_end*trans_len;
     size_t file_read = file_end-file_start;
 
-    dtype dat(file_read);
+    compute.allocate_data(trans_read);
 
-    MPI_File_read_at(in_file, (MPI_Offset)file_start, dat.data(),
+    MPI_File_read_at(in_file, (MPI_Offset)file_start, compute.get_data_addr(),
                              file_read, _MPI_ELM_DTYPE, &mpistat);
 
     MPI_File_close(&in_file);
-    
-    cout<<"File Size = "<<filesize<<endl;
-
-
-    Dataset dataset(trans_len);
-    dataset.swap_data(dat);
 
 
 
-    Apriori apriori(trans_len, minsup);
-    Compute compute(trans_len, num_threads);
-    compute.set_data(dataset.get_data(),dataset.get_length());
+    Apriori apriori(trans_len, minsup);    
 
     do
     {   
