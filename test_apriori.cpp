@@ -5,9 +5,12 @@
 #include "apriori.h"
 
 using namespace std;
-#define _TRANS_LEN 25;
-#define _MINSUP 10000;
-#define _FILE_NAME "mnist_train_25.dat";
+
+#define _FILE_NAME "mnist_train_25.dat"
+#define _TRANS_LEN 25
+#define _MINSUP 20000
+#define _NUM_THREADS 256
+
 
 ostream& operator << (ostream &out, vector<size_t> items){
     auto i=items.begin();
@@ -23,6 +26,7 @@ int main(int argc, char* argv[]){
     size_t trans_len=_TRANS_LEN;
     size_t minsup = _MINSUP;
     const char* file_name = _FILE_NAME;
+    unsigned int num_threads = _NUM_THREADS;
 
     ifstream file (file_name,ios::binary);
 
@@ -41,6 +45,8 @@ int main(int argc, char* argv[]){
 
 
     Apriori apriori(trans_len, minsup);
+    Compute compute(trans_len, num_threads);
+    compute.set_data(dataset.get_data(),dataset.get_length());
 
     do
     {   
@@ -49,9 +55,9 @@ int main(int argc, char* argv[]){
         cout<<"Length of C"<<apriori.get_level()<<" = "<<apriori.patterns.get_length()<<endl;
 
         //out<<"Computing Support..."<<endl;
-        compute_support(apriori.patterns.get_data(), apriori.patterns.get_length(),
-                        dataset.get_data(), dataset.get_length(), 
-                        trans_len, apriori.supports.data());
+        compute.set_patterns(apriori.patterns.get_data(), apriori.patterns.get_length());
+        compute.compute_support();
+        compute.get_supports(apriori.supports.data());
                         
         apriori.remove_infrequent();
         cout<<"Length of F"<<apriori.get_level()<<" = "<<apriori.patterns.get_length()<<endl;
@@ -64,4 +70,6 @@ int main(int argc, char* argv[]){
         cout<<"================================="<<endl;
         cout<<endl;
     } while (apriori.patterns.get_length()>1);
+
+    compute.free_all();
 }
