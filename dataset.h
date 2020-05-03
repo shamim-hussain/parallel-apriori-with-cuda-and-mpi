@@ -80,7 +80,7 @@ class Itemset{
     }
 
     inline bool operator >(Itemset I) const{
-        for (unsigned i=length-1;i>=0;i++){
+        for (long i=length-1;i>=0;i++){
             if((unsigned char)address[i] > (unsigned char)I.address[i]) return true;
             if((unsigned char)address[i] < (unsigned char)I.address[i]) return false;
         }
@@ -88,7 +88,7 @@ class Itemset{
     }
 
     inline bool operator <(Itemset I) const{
-        for (unsigned i=length-1;i>=0;i++){
+        for (long i=length-1;i>=0;i++){
             if((unsigned char)address[i] < (unsigned char)I.address[i]) return true;
             if((unsigned char)address[i] > (unsigned char)I.address[i]) return false;
         }

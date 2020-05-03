@@ -37,10 +37,20 @@ void Compute::set_data(char*  dataset, size_t num_data){
 					cudaMemcpyHostToDevice);
 }
 
+void Compute::allocate_data(size_t num_data){
+	g_num_data=num_data;
+	if (g_dataset!=NULL) cudaFree(g_dataset);
+	cudaMallocManaged(&g_dataset, g_num_data * g_trans_len * sizeof(char));
+}
+
+char* Compute::get_data_addr(){
+	return g_dataset;
+}
+
 void Compute::set_patterns(char* patterns, size_t num_patterns){
 	g_num_patterns=num_patterns;
 	if (g_patterns!=NULL)cudaFree(g_patterns);				
-	cudaMallocManaged(&g_patterns, g_num_patterns * g_trans_len * sizeof(char)); 
+	cudaMalloc(&g_patterns, g_num_patterns * g_trans_len * sizeof(char)); 
 	cudaMemcpy(g_patterns, patterns, g_num_patterns * g_trans_len * sizeof(char),
 				cudaMemcpyHostToDevice);
 }
@@ -75,5 +85,23 @@ void Compute::free_all(){
 }
 
 
+// Function to initialize CUDA device
+void cuda_init(int myrank)
+{
+    int cudaDeviceCount;
+    cudaError_t cE;
+    
+    if( (cE = cudaGetDeviceCount( &cudaDeviceCount)) != cudaSuccess ){
+        printf(" Unable to determine cuda device count, error is %d, count is %d\n",
+                                                                cE, cudaDeviceCount );
+        exit(-1);
+    }
+
+    if( (cE = cudaSetDevice( myrank % cudaDeviceCount )) != cudaSuccess ){
+        printf(" Unable to have rank %d set to cuda device %d, error is %d \n",
+        myrank, (myrank % cudaDeviceCount), cE);
+        exit(-1);
+    } 
+}
 
 
