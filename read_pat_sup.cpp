@@ -58,10 +58,26 @@ int main(int argc, char* argv[]){
     unsigned int* supports=(unsigned int*)(sup.data());
 
 
-    cout<<"================================="<<endl;
-    cout<<"Patterns and Supports:"<<endl;
+    vector <unsigned int> FN;
+
+    cout<<"===================================================="<<endl;
+    cout<<"Frequent Patterns and Supports:"<<endl;
+
     for(size_t i=0;i<patterns.get_length();i++){
-        cout<<patterns[i].items()<<" - "<<supports[i]<<endl;
+        vector<size_t> items=patterns[i].items();
+
+        if (items.size()>FN.size())
+            FN.push_back(1);
+        else
+            FN.back()++;
+
+        cout<<items<<" - "<<supports[i]<<endl;
     }
-    cout<<"================================="<<endl;
+
+    cout<<"===================================================="<<endl;
+    cout<<"Number of Patterns of Different Lengths:"<<endl;
+    for (size_t i=0; i<FN.size(); i++){
+        cout<<"F"<<(i+1)<<" : "<<FN[i]<<endl;
+    }
+    cout<<"===================================================="<<endl;
 }
