@@ -21,10 +21,6 @@ using namespace std;
 
 
 
-
-
-
-ostream& operator << (ostream &out, vector<size_t> items);
 std::ifstream::pos_type filesize(const char* filename);
 
 
@@ -35,9 +31,6 @@ int main(int argc, char* argv[]){
     unsigned int num_threads = _NUM_THREADS;
     
     MPI_File in_file;
-    MPI_File pat_file;
-    MPI_File sup_file;
-
     MPI_Offset filesize;
     MPI_Status mpistat;
 
@@ -51,27 +44,11 @@ int main(int argc, char* argv[]){
     MPI_Comm_size(MPI_COMM_WORLD, &g_mpiSize);
     MPI_Comm_rank(MPI_COMM_WORLD, &g_mpiRank); 
     
-    if (MPI_File_open(MPI_COMM_WORLD, file_name, MPI_MODE_RDONLY, 
-            MPI_INFO_NULL, &in_file )) {
-        cout<< "Unable to open input file!"<<endl;
+    if (MPI_File_open(MPI_COMM_WORLD, file_name, MPI_MODE_RDONLY, MPI_INFO_NULL, &in_file )) {
+        cout<< "Unable to open file!"<<endl;
         MPI_Finalize();
         exit(-1);
     }
-
-    if (MPI_File_open(MPI_COMM_WORLD, "patterns.dat",MPI_MODE_CREATE | MPI_MODE_WRONLY,
-		                        MPI_INFO_NULL, &pat_file)){
-        cout<< "Unable to open patterns file!"<<endl;
-        MPI_Finalize();
-        exit(-1);
-    }
-
-    if (MPI_File_open(MPI_COMM_WORLD, "supports.dat",MPI_MODE_CREATE | MPI_MODE_WRONLY,
-		                        MPI_INFO_NULL, &pat_file)){
-        cout<< "Unable to open supports file!"<<endl;
-        MPI_Finalize();
-        exit(-1);
-    }
-
 
     cuda_init(g_mpiRank);
 
@@ -97,6 +74,8 @@ int main(int argc, char* argv[]){
     MPI_File_read_at(in_file, (MPI_Offset)file_start, compute.get_data_addr(),
                              file_read, _MPI_ELM_DTYPE, &mpistat);
 
+    MPI_File_close(&in_file);
+
 
 
     Apriori apriori(trans_len, minsup);    
@@ -104,7 +83,7 @@ int main(int argc, char* argv[]){
     do
     {   
         apriori.extend_tree();
-
+        
         compute.set_patterns(apriori.patterns.get_data(), apriori.patterns.get_length());
         compute.compute_support();
         compute.get_supports(apriori.supports.data());
@@ -119,19 +98,5 @@ int main(int argc, char* argv[]){
     compute.free_all();
     
     // Finalize MPI
-    MPI_File_close(&in_file);
-    MPI_File_close(&pat_file);
-    MPI_File_close(&sup_file);
     MPI_Finalize();
-}
-
-
-ostream& operator << (ostream &out, vector<size_t> items){
-    vector<size_t>::iterator i=items.begin();
-    out<<*i;
-    i++;
-    for (;i!=items.end();i++){
-        out<<" "<<*i;
-    }
-    return out;
 }
