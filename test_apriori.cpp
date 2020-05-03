@@ -65,7 +65,7 @@ int main(int argc, char* argv[]){
     size_t trans_start = each_trans*g_mpiRank;
     size_t trans_end = trans_start+each_trans;
     if (trans_end>tot_trans) trans_end=tot_trans;
-    size_t trans_read = trans_start-trans_end;
+    size_t trans_read = trans_end-trans_start;
 
     size_t file_start = trans_start*trans_len;
     size_t file_end = trans_end*trans_len;

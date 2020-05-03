@@ -43,7 +43,7 @@ void Compute::allocate_data(size_t num_data){
 	cudaMallocManaged(&g_dataset, g_num_data * g_trans_len * sizeof(char));
 }
 
-inline char* Compute::get_data_addr(){
+char* Compute::get_data_addr(){
 	return g_dataset;
 }
 
