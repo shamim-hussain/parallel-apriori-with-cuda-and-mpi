@@ -35,6 +35,9 @@ int main(int argc, char* argv[]){
     unsigned int num_threads = _NUM_THREADS;
     
     MPI_File in_file;
+    MPI_File pat_file;
+    MPI_File sup_file;
+
     MPI_Offset filesize;
     MPI_Status mpistat;
 
@@ -48,11 +51,27 @@ int main(int argc, char* argv[]){
     MPI_Comm_size(MPI_COMM_WORLD, &g_mpiSize);
     MPI_Comm_rank(MPI_COMM_WORLD, &g_mpiRank); 
     
-    if (MPI_File_open(MPI_COMM_WORLD, file_name, MPI_MODE_RDONLY, MPI_INFO_NULL, &in_file )) {
-        cout<< "Unable to open file!"<<endl;
+    if (MPI_File_open(MPI_COMM_WORLD, file_name, MPI_MODE_RDONLY, 
+            MPI_INFO_NULL, &in_file )) {
+        cout<< "Unable to open input file!"<<endl;
         MPI_Finalize();
         exit(-1);
     }
+
+    if (MPI_File_open(MPI_COMM_WORLD, "patterns.dat",MPI_MODE_CREATE | MPI_MODE_WRONLY,
+		                        MPI_INFO_NULL, &pat_file)){
+        cout<< "Unable to open patterns file!"<<endl;
+        MPI_Finalize();
+        exit(-1);
+    }
+
+    if (MPI_File_open(MPI_COMM_WORLD, "supports.dat",MPI_MODE_CREATE | MPI_MODE_WRONLY,
+		                        MPI_INFO_NULL, &pat_file)){
+        cout<< "Unable to open supports file!"<<endl;
+        MPI_Finalize();
+        exit(-1);
+    }
+
 
     cuda_init(g_mpiRank);
 
@@ -78,19 +97,14 @@ int main(int argc, char* argv[]){
     MPI_File_read_at(in_file, (MPI_Offset)file_start, compute.get_data_addr(),
                              file_read, _MPI_ELM_DTYPE, &mpistat);
 
-    MPI_File_close(&in_file);
-
 
 
     Apriori apriori(trans_len, minsup);    
 
     do
     {   
-        cout<<"================================="<<endl;
         apriori.extend_tree();
-        cout<<"Length of C"<<apriori.get_level()<<" = "<<apriori.patterns.get_length()<<endl;
 
-        //out<<"Computing Support..."<<endl;
         compute.set_patterns(apriori.patterns.get_data(), apriori.patterns.get_length());
         compute.compute_support();
         compute.get_supports(apriori.supports.data());
@@ -100,20 +114,14 @@ int main(int argc, char* argv[]){
                         MPI_SUM, MPI_COMM_WORLD);
                         
         apriori.remove_infrequent();
-        cout<<"Length of F"<<apriori.get_level()<<" = "<<apriori.patterns.get_length()<<endl;
-
-        cout<<"================================="<<endl;
-        cout<<"Patterns and Supports:"<<endl;
-        for(size_t i=0;i<apriori.patterns.get_length();i++){
-            cout<<apriori.patterns[i].items()<<" - "<<apriori.supports[i]<<endl;
-        }
-        cout<<"================================="<<endl;
-        cout<<endl;
     } while (apriori.patterns.get_length()>1);
 
     compute.free_all();
     
     // Finalize MPI
+    MPI_File_close(&in_file);
+    MPI_File_close(&pat_file);
+    MPI_File_close(&sup_file);
     MPI_Finalize();
 }
 
