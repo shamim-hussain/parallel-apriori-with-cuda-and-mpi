@@ -25,7 +25,7 @@ static __inline__ ticks getticks(void)
   return (((unsigned long long)tbu0) << 32) | tbl;
 }
 
-long double inline tics_to_sec(ticks tick_count){
+long double inline ticks_to_sec(ticks tick_count){
   return ((long double)tick_count)/_TICK_PER_SECOND;
 }
 
