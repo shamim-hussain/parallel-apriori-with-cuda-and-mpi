@@ -10,6 +10,8 @@
 
 typedef unsigned long long ticks;
 
+#define _TICK_PER_SECOND 512000000.0L
+
 static __inline__ ticks getticks(void)
 {
   unsigned int tbl, tbu0, tbu1;
@@ -21,6 +23,10 @@ static __inline__ ticks getticks(void)
   } while (tbu0 != tbu1);
 
   return (((unsigned long long)tbu0) << 32) | tbl;
+}
+
+long double inline tics_to_sec(ticks tick_count){
+  return ((long double)tick_count)/_TICK_PER_SECOND;
 }
 
 // int main()
