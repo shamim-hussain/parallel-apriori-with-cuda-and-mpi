@@ -2,8 +2,8 @@
 + '[' x2 = x ']'
 + srun hostname -s
 + sort -u
-+ awk '{ print $0 "-ib slots=2"; }' /tmp/hosts.147991
-+ mv /tmp/tmp.147991 /tmp/hosts.147991
++ awk '{ print $0 "-ib slots=2"; }' /tmp/hosts.149256
++ mv /tmp/tmp.149256 /tmp/hosts.149256
 + module load gcc/7.4.0/1
 ++ /usr/share/lmod/lmod/libexec/lmod bash load gcc/7.4.0/1
 
@@ -127,7 +127,7 @@ Due to MODULEPATH changes, the following have been reloaded:
 ++ export _ModuleTable_Sz_
 ++ : -s sh
 + eval
-+ mpirun -hostfile /tmp/hosts.147991 -np 2 /gpfs/u/home/DLTM/DLTMhssn/scratch/parallel_project/parallel_project/test_apriori
++ mpirun -hostfile /tmp/hosts.149256 -np 2 /gpfs/u/home/DLTM/DLTMhssn/scratch/parallel_project/parallel_project/test_apriori
 perl: warning: Setting locale failed.
 perl: warning: Please check that your locale settings:
 	LANGUAGE = (unset),
@@ -135,4 +135,4 @@ perl: warning: Please check that your locale settings:
 	LANG = "C.UTF-8"
     are supported and installed on your system.
 perl: warning: Falling back to the standard locale ("C").
-+ rm /tmp/hosts.147991
++ rm /tmp/hosts.149256

@@ -34,9 +34,6 @@ int main(int argc, char* argv[]){
     MPI_File pat_file;
     MPI_File sup_file;
 
-    MPI_Offset filesize;
-    MPI_Status mpistat;
-
     // Size of the MPI COMM
     int g_mpiSize=1;
     // Rank of the process in MPI
@@ -65,11 +62,13 @@ int main(int argc, char* argv[]){
         MPI_Finalize();
         exit(-1);
     }
+
+
     cuda_init(g_mpiRank);
 
     Compute compute(trans_len, num_threads);
-    
 
+    MPI_Offset filesize;
     MPI_File_get_size(in_file, &filesize);
 
     size_t tot_trans = filesize/trans_len;
@@ -87,11 +86,12 @@ int main(int argc, char* argv[]){
     compute.allocate_data(trans_read);
 
     MPI_File_read_at(in_file, (MPI_Offset)file_start, compute.get_data_addr(),
-                             file_read, _MPI_ELM_DTYPE, &mpistat);
+                             file_read, _MPI_ELM_DTYPE, MPI_STATUS_IGNORE);
 
 
 
-    Apriori apriori(trans_len, minsup);    
+    Apriori apriori(trans_len, minsup);  
+    size_t w_size,w_each,w_start,w_end,w_write, g_w_head=0;
 
     do
     {   
@@ -106,6 +106,25 @@ int main(int argc, char* argv[]){
                         MPI_SUM, MPI_COMM_WORLD);
                         
         apriori.remove_infrequent();
+
+        w_size=apriori.supports.size();
+        w_each=(w_size+g_mpiSize-1)/g_mpiSize;
+        w_start=w_each*g_mpiRank;
+        w_end=w_start+w_each;
+        if (w_end>w_size) w_end=w_size;
+        w_write=w_end-w_start;
+
+        MPI_File_set_view(pat_file, (g_w_head+w_start)*trans_len,
+		                            _MPI_ELM_DTYPE, _MPI_ELM_DTYPE, "native",MPI_INFO_NULL);
+        MPI_File_set_view(sup_file, (g_w_head+w_start)*sizeof(stype),
+		                            _MPI_ELM_DTYPE, _MPI_ELM_DTYPE, "native",MPI_INFO_NULL);
+
+        MPI_File_write(pat_file, apriori.patterns.get_data()+w_start*trans_len,
+                         w_write*trans_len, _MPI_ELM_DTYPE, MPI_STATUS_IGNORE);
+        MPI_File_write(sup_file, apriori.supports.data()+w_start,
+                            w_write*sizeof(stype), _MPI_ELM_DTYPE, MPI_STATUS_IGNORE);
+
+        g_w_head+=w_size;
     } while (apriori.patterns.get_length()>1);
 
     compute.free_all();
