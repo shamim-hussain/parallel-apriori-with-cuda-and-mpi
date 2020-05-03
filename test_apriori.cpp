@@ -10,9 +10,11 @@
 
 using namespace std;
 
+#define _MPI_DTYPE MPI_UNSIGNED 
+
 #define _FILE_NAME "mnist_train_25.dat"
 #define _TRANS_LEN 25
-#define _MINSUP 30000
+#define _MINSUP 60000
 #define _NUM_THREADS 256
 
 
@@ -26,6 +28,7 @@ int g_mpiRank=0;
 
 
 ostream& operator << (ostream &out, vector<size_t> items);
+std::ifstream::pos_type filesize(const char* filename);
 
 
 int main(int argc, char* argv[]){
@@ -40,6 +43,8 @@ int main(int argc, char* argv[]){
     MPI_Comm_rank(MPI_COMM_WORLD, &g_mpiRank); 
 
     cuda_init(g_mpiRank);
+
+    cout<<"File Size = "<<filesize(file_name)<<endl;
 
     ifstream file (file_name,ios::binary);
 
@@ -71,6 +76,10 @@ int main(int argc, char* argv[]){
         compute.set_patterns(apriori.patterns.get_data(), apriori.patterns.get_length());
         compute.compute_support();
         compute.get_supports(apriori.supports.data());
+
+        MPI_Allreduce(MPI_IN_PLACE,apriori.supports.data(), 
+                        apriori.supports.size(), _MPI_DTYPE, 
+                        MPI_SUM, MPI_COMM_WORLD);
                         
         apriori.remove_infrequent();
         cout<<"Length of F"<<apriori.get_level()<<" = "<<apriori.patterns.get_length()<<endl;
@@ -99,4 +108,16 @@ ostream& operator << (ostream &out, vector<size_t> items){
         out<<" "<<*i;
     }
     return out;
+}
+
+std::ifstream::pos_type filesize(const char* filename)
+{
+    std::ifstream in(filename, std::ifstream::ate | std::ifstream::binary);
+    if (!in.is_open()){
+        cout<<"Failed to open file!!"<<endl;
+        exit(-1);
+    }
+    std::ifstream::pos_type pos= in.tellg(); 
+    in.close();
+    return pos;
 }
