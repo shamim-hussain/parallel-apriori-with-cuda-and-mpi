@@ -1,9 +1,9 @@
-+ '[' x12 = x ']'
++ '[' x6 = x ']'
 + '[' x6 = x ']'
 + srun hostname -s
 + sort -u
-+ awk '{ print $0 "-ib slots=6"; }' /tmp/hosts.154419
-+ mv /tmp/tmp.154419 /tmp/hosts.154419
++ awk '{ print $0 "-ib slots=6"; }' /tmp/hosts.154504
++ mv /tmp/tmp.154504 /tmp/hosts.154504
 + module load gcc/7.4.0/1
 ++ /usr/share/lmod/lmod/libexec/lmod bash load gcc/7.4.0/1
 
@@ -127,7 +127,7 @@ Due to MODULEPATH changes, the following have been reloaded:
 ++ export _ModuleTable_Sz_
 ++ : -s sh
 + eval
-+ mpirun -hostfile /tmp/hosts.154419 -np 12 /gpfs/u/home/DLTM/DLTMhssn/scratch/parallel_project/parallel_project/apriori datasets/T40I10D100K_125.dat 125 750 1024
++ mpirun -hostfile /tmp/hosts.154504 -np 6 /gpfs/u/home/DLTM/DLTMhssn/scratch/parallel_project/parallel_project/apriori datasets/T40I10D100K_125.dat 125 2000 1024
 perl: warning: Setting locale failed.
 perl: warning: Please check that your locale settings:
 	LANGUAGE = (unset),
@@ -140,19 +140,19 @@ Input file: datasets/T40I10D100K_125.dat
 Output Files : Patterns -> patterns.dat; Supports -> supports.dat
 Transaction Length: 125
 Total number of transactions: 100000
-Minimum Support: 750
+Minimum Support: 2000
 Number of GPU Threads: 1024
-Number of MPI ranks: 12
+Number of MPI ranks: 6
 Read block size per rank: 65536 Bytes
 Read block size per rank: 525 transactions
 Write block size per rank: 65536 Bytes
 Write block size per rank: 525 transactions
 ==============================================
-Number of frequent patterns = 496882
-Time taken in main loop = 112.047 sec
-Time taken in compute_support = 96.1389 sec
-Time taken in Allreduce = 8.57459 sec
-Apriori iterations = 18
-Time taken in reading file = 0.051394 sec
-Time taken in writing file = 8.57459 sec
-+ rm /tmp/hosts.154419
+Number of frequent patterns = 2293
+Time taken in main loop = 23.7007 sec
+Time taken in compute_support = 22.311 sec
+Time taken in Allreduce = 0.741393 sec
+Apriori iterations = 4
+Time taken in reading file = 0.00853273 sec
+Time taken in writing file = 0.741393 sec
++ rm /tmp/hosts.154504
