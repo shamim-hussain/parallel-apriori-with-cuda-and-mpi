@@ -21,5 +21,5 @@ module load gcc/7.4.0/1
 module load spectrum-mpi
 module load cuda
 
-mpirun -hostfile /tmp/hosts.$SLURM_JOB_ID -np $SLURM_NPROCS /gpfs/u/home/DLTM/DLTMhssn/scratch/parallel_project/parallel_project/apriori bigdata/mnist_rep200_25.dat 25 1000000 1024
+mpirun -hostfile /tmp/hosts.$SLURM_JOB_ID -np $SLURM_NPROCS /gpfs/u/home/DLTM/DLTMhssn/scratch/parallel_project/parallel_project/apriori bigdata/mnist_rep200_25.dat 25 2000000 1024 1048576 1048576
 rm /tmp/hosts.$SLURM_JOB_ID
