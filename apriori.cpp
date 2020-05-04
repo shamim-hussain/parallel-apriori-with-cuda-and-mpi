@@ -19,6 +19,8 @@ using namespace std;
 
 #define _DEL_EXISTING
 
+#define _RD_BLK_SIZE 16384 //128MB
+
 
 int main(int argc, char* argv[]){
     size_t trans_len;
@@ -107,23 +109,8 @@ int main(int argc, char* argv[]){
     MPI_File_get_size(in_file, &filesize);
 
     size_t tot_trans = filesize/trans_len;
-    size_t each_trans = (tot_trans+g_mpiSize-1)/g_mpiSize;
-
-    size_t trans_start = each_trans*g_mpiRank;
-    size_t trans_end = trans_start+each_trans;
-    if (trans_end>tot_trans) trans_end=tot_trans;
-    size_t trans_read = trans_end-trans_start;
-
-    size_t file_start = trans_start*trans_len;
-    size_t file_end = trans_end*trans_len;
-    size_t file_read = file_end-file_start;
-
-
-    // Read data
-    compute.allocate_data(trans_read);
-
-    MPI_File_read_at(in_file, (MPI_Offset)file_start, compute.get_data_addr(),
-                             file_read, _MPI_ELM_DTYPE, MPI_STATUS_IGNORE);
+    size_t trans_per_iter=_RD_BLK_SIZE/trans_len;
+    compute.allocate_data(trans_per_iter);
 
 
 
@@ -137,6 +124,8 @@ int main(int argc, char* argv[]){
         cout<<"Minimum Support: "<<minsup<<endl;
         cout<<"Number of GPU Threads: "<<num_threads<<endl;
         cout<<"Number of MPI ranks: "<<g_mpiSize<<endl;
+        cout<<"Read block size per rank: "<<_RD_BLK_SIZE<<" Bytes"<<endl;
+        cout<<"Read block size per rank: "<<trans_per_iter<<" transactions"<<endl;
         cout<<"=============================================="<<endl;
     }
 
@@ -145,23 +134,35 @@ int main(int argc, char* argv[]){
     //Initialize apriori
     Apriori apriori(trans_len, minsup);  
     size_t w_size,w_each,w_start,w_end,w_write, g_w_head=0;
-    
+    size_t r_start,r_end,r_read, g_r_head=0;
     // time
     ticks t_write=0, t_compsup=0, t_mpi=0;
     ticks t_loop_start=getticks();
     do
     {   
+        
         // Apriori step
         apriori.extend_tree();
         
         compute.set_patterns(apriori.patterns.get_data(), apriori.patterns.get_length());
         
 
-        // Compute Support
-        ticks t_compsup_start=getticks();
-        compute.compute_support();
-        ticks t_compsup_end=getticks();
-        t_compsup+=t_compsup_end-t_compsup_start;
+        for(g_r_head=0;g_r_head<tot_trans;g_r_head+=trans_per_iter*g_mpiSize){
+            r_start=g_r_head+trans_per_iter*g_mpiRank;
+            r_end=r_start+trans_per_iter;
+            if (r_end>tot_trans) r_end=tot_trans;
+            r_read=r_end-r_start;
+
+            MPI_File_read_at(in_file, r_start*trans_len, compute.get_data_addr(),
+                                r_read*trans_len, _MPI_ELM_DTYPE, MPI_STATUS_IGNORE);
+            compute.set_num_data(r_read);
+            
+            // Compute Support
+            ticks t_compsup_start=getticks();
+            compute.compute_support();
+            ticks t_compsup_end=getticks();
+            t_compsup+=t_compsup_end-t_compsup_start;            
+        }
 
         compute.get_supports(apriori.supports.data());
 
