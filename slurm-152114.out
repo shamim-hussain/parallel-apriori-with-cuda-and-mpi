@@ -2,8 +2,8 @@
 + '[' x1 = x ']'
 + srun hostname -s
 + sort -u
-+ awk '{ print $0 "-ib slots=1"; }' /tmp/hosts.151719
-+ mv /tmp/tmp.151719 /tmp/hosts.151719
++ awk '{ print $0 "-ib slots=1"; }' /tmp/hosts.152114
++ mv /tmp/tmp.152114 /tmp/hosts.152114
 + module load gcc/7.4.0/1
 ++ /usr/share/lmod/lmod/libexec/lmod bash load gcc/7.4.0/1
 
@@ -127,7 +127,7 @@ Due to MODULEPATH changes, the following have been reloaded:
 ++ export _ModuleTable_Sz_
 ++ : -s sh
 + eval
-+ mpirun -hostfile /tmp/hosts.151719 -np 1 /gpfs/u/home/DLTM/DLTMhssn/scratch/parallel_project/parallel_project/apriori /gpfs/u/home/DLTM/DLTMhssn/scratch/parallel_project/parallel_project/datasets/mnist_25.dat 25 20000 512
++ mpirun -hostfile /tmp/hosts.152114 -np 1 /gpfs/u/home/DLTM/DLTMhssn/scratch/parallel_project/parallel_project/apriori datasets/mnist_25.dat 25 20000 512
 perl: warning: Setting locale failed.
 perl: warning: Please check that your locale settings:
 	LANGUAGE = (unset),
@@ -135,8 +135,14 @@ perl: warning: Please check that your locale settings:
 	LANG = "C.UTF-8"
     are supported and installed on your system.
 perl: warning: Falling back to the standard locale ("C").
-Time taken in main loop = 0.104296 sec
-Time taken in compute_support = 0.103297 sec
-Time taken in Allreduce = 1.19707e-05 sec
-Time taken in writing file = 5.93164e-05 sec
-+ rm /tmp/hosts.151719
+==============================================
+Input file: datasets/mnist_25.dat
+Transaction Length: 25
+Minimum Support: 20000
+Number of GPU Threads: 512
+==============================================
+Time taken in main loop = 0.523613 sec
+Time taken in compute_support = 0.510643 sec
+Time taken in Allreduce = 1.56367e-05 sec
+Time taken in writing file = 0.00110599 sec
++ rm /tmp/hosts.152114
