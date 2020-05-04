@@ -1,7 +1,11 @@
 #include <iostream>
 #include <fstream>
+#include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
+
+
+#define NDEBUG
 
 #include "dataset.h"
 #include "compsup.h"
@@ -13,10 +17,12 @@ using namespace std;
 #define _MPI_ELM_DTYPE MPI_CHAR
 #define _MPI_SUP_DTYPE MPI_UNSIGNED 
 
-#define _FILE_NAME "mnist_train_25.dat"
-#define _TRANS_LEN 25
-#define _MINSUP 6000
-#define _NUM_THREADS 256
+// #define _FILE_NAME "mnist_25.dat"
+// #define _TRANS_LEN 25
+// #define _MINSUP 6000
+#define _NUM_THREADS 512
+#define _PFILE_NAME "patterns.dat"
+#define _SFILE_NAME "supports.dat"
 
 
 
@@ -24,11 +30,35 @@ std::ifstream::pos_type filesize(const char* filename);
 
 
 int main(int argc, char* argv[]){
-    size_t trans_len=_TRANS_LEN;
-    size_t minsup = _MINSUP;
-    const char* file_name = _FILE_NAME;
+
+    size_t trans_len;
+    size_t minsup;
+    const char* file_name;
+    const char* pfile_name=_PFILE_NAME;
+    const char* sfile_name=_SFILE_NAME;
     unsigned int num_threads = _NUM_THREADS;
     
+    if( argc < 4 || argc > 7 ){
+        cout<<"apriori requires 3 arguments: file_name, transaction_length (in bytes) and minimum_support (unsigned integer) e.g. ./apriori mnist_25.dat 25 20000 \n";
+        cout<<"Additionally you can provide 3 more arguments - num_threads, output_pattern_file, output_support_file e.g. ./apriori mnist_25.dat 25 20000 512 patterns.dat supports.dat \n";
+        exit(-1);
+    }
+
+    file_name = argv[1];
+    trans_len = atoi(argv[2]);
+    num_threads = atoi(argv[3]);
+
+    // set num_threads if provided
+    if( argc > 4 )
+        num_threads = atoi(argv[4]);
+    
+    // set output_flag if provided
+    if( argc > 5 )
+        pfile_name = pfile_name;
+
+    if( argc > 6 )
+        sfile_name = pfile_name;
+
     MPI_File in_file;
     MPI_File pat_file;
     MPI_File sup_file;
@@ -48,14 +78,22 @@ int main(int argc, char* argv[]){
         MPI_Finalize();
         exit(-1);
     }
-    if (MPI_File_open(MPI_COMM_WORLD, "patterns.dat",MPI_MODE_CREATE | MPI_MODE_WRONLY,
+
+
+    MPI_File_open(MPI_COMM_WORLD, pfile_name,MPI_MODE_CREATE | MPI_MODE_WRONLY|MPI_MODE_DELETE_ON_CLOSE,MPI_INFO_NULL, &pat_file);
+    MPI_File_open(MPI_COMM_WORLD, sfile_name,MPI_MODE_CREATE | MPI_MODE_WRONLY|MPI_MODE_DELETE_ON_CLOSE,MPI_INFO_NULL, &sup_file);
+    MPI_File_close(&pat_file);
+    MPI_File_close(&sup_file);                            
+    
+    if (MPI_File_open(MPI_COMM_WORLD, pfile_name,MPI_MODE_CREATE | MPI_MODE_WRONLY,
 		                        MPI_INFO_NULL, &pat_file)){
         cout<< "Unable to open patterns file!"<<endl;
         MPI_Finalize();
         exit(-1);
     }
 
-    if (MPI_File_open(MPI_COMM_WORLD, "supports.dat",MPI_MODE_CREATE | MPI_MODE_WRONLY,
+    
+    if (MPI_File_open(MPI_COMM_WORLD, sfile_name, MPI_MODE_CREATE | MPI_MODE_WRONLY,
 		                        MPI_INFO_NULL, &sup_file)){
         cout<< "Unable to open supports file!"<<endl;
         MPI_Finalize();
@@ -73,6 +111,7 @@ int main(int argc, char* argv[]){
     MPI_File_get_size(in_file, &filesize);
 
     size_t tot_trans = filesize/trans_len;
+    if (g_mpiRank==0) cout<<"Number of transactions in dataset = "<<tot_trans<<endl;
     size_t each_trans = (tot_trans+g_mpiSize-1)/g_mpiSize;
 
     size_t trans_start = each_trans*g_mpiRank;

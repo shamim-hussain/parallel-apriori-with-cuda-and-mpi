@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include "dataset.h"
+#include "../dataset.h"
 
 using namespace std;
 
@@ -25,6 +25,11 @@ int main(int argc, char* argv[]){
     size_t trans_len=_TRANS_LEN;
     const char* pat_file_name = _PAT_FILE_NAME;
     const char* sup_file_name = _SUP_FILE_NAME;
+
+    if (argc==3){
+        pat_file_name=argv[1];
+        sup_file_name=argv[2];
+    }
 
     ifstream pfile (pat_file_name,ios::binary);
 
