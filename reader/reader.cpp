@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <stdlib.h>
 #include <vector>
 #include "../dataset.h"
 
@@ -7,7 +8,6 @@ using namespace std;
 
 #define _SUP_FILE_NAME "supports.dat"
 #define _PAT_FILE_NAME "patterns.dat"
-#define _TRANS_LEN 25
 
 
 
@@ -22,14 +22,26 @@ ostream& operator << (ostream &out, vector<size_t> items){
 }
 
 int main(int argc, char* argv[]){
-    size_t trans_len=_TRANS_LEN;
+    size_t trans_len;
     const char* pat_file_name = _PAT_FILE_NAME;
     const char* sup_file_name = _SUP_FILE_NAME;
 
-    if (argc==3){
-        pat_file_name=argv[1];
-        sup_file_name=argv[2];
+    if (argc<2){
+        cout<<"Provide transaction length!!"<<endl;
+        exit(-1);
     }
+
+    trans_len=(size_t)atoi(argv[1]);
+
+    if (argc==4){
+        pat_file_name=argv[2];
+        sup_file_name=argv[3];
+    }
+    
+    cout<<"===================================================="<<endl;
+    cout<<"Transaction length = "<<trans_len<<endl;
+    cout<<"Pattern File -> "<<pat_file_name<<endl;
+    cout<<"Support File -> "<<sup_file_name<<endl;
 
     ifstream pfile (pat_file_name,ios::binary);
 

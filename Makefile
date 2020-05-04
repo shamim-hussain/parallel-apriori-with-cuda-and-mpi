@@ -13,7 +13,9 @@ run: slurmSpectrum.sh
 	sbatch -N $(n) --partition=dcs --ntasks-per-node=$(t) --gres=gpu:$(g) -t 30 ./slurmSpectrum.sh
 
 read: reader/reader
-	reader/reader
+	reader/reader $(tl)
+rd20: reader/reader
+	reader/reader | tail -n 20
 
 rmout: patterns.dat supports.dat
 	rm patterns.dat
