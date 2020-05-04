@@ -208,6 +208,7 @@ int main(int argc, char* argv[]){
     size_t t_loop=t_loop_end-t_loop_start;
 
     if (g_mpiRank==0) {
+        cout<<"Number of frequent patterns = "<<g_w_head<<endl;
         cout<<"Time taken in main loop = "<<ticks_to_sec(t_loop)<<" sec"<<endl;
         cout<<"Time taken in compute_support = "<<ticks_to_sec(t_compsup)<<" sec"<<endl;
         cout<<"Time taken in Allreduce = "<<ticks_to_sec(t_mpi)<<" sec"<<endl;
