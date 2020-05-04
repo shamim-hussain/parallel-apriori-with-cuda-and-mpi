@@ -20,6 +20,8 @@ using namespace std;
 #define _DEL_EXISTING
 
 #define _RD_BLK_SIZE 16384 //128MB
+#define _WR_BLK_SIZE 16384
+
 
 
 int main(int argc, char* argv[]){
@@ -54,6 +56,7 @@ int main(int argc, char* argv[]){
         sfile_name = argv[6];
     
 
+    //Mpi file handles
     MPI_File in_file;
     MPI_File pat_file;
     MPI_File sup_file;
@@ -68,7 +71,7 @@ int main(int argc, char* argv[]){
     MPI_Comm_size(MPI_COMM_WORLD, &g_mpiSize);
     MPI_Comm_rank(MPI_COMM_WORLD, &g_mpiRank); 
 
-
+    // Open input file
     if (MPI_File_open(MPI_COMM_WORLD, file_name, MPI_MODE_RDONLY, MPI_INFO_NULL, &in_file )) {
         cout<< "Unable to open input file!"<<endl;
         MPI_Finalize();
@@ -76,7 +79,7 @@ int main(int argc, char* argv[]){
     }
 
 
-    // Delete file if exists
+    // Delete output files if exists
     #ifdef _DEL_EXISTING
     MPI_File_open(MPI_COMM_WORLD, pfile_name,MPI_MODE_CREATE | MPI_MODE_WRONLY|MPI_MODE_DELETE_ON_CLOSE,MPI_INFO_NULL, &pat_file);
     MPI_File_open(MPI_COMM_WORLD, sfile_name,MPI_MODE_CREATE | MPI_MODE_WRONLY|MPI_MODE_DELETE_ON_CLOSE,MPI_INFO_NULL, &sup_file);
@@ -84,7 +87,7 @@ int main(int argc, char* argv[]){
     MPI_File_close(&sup_file); 
     #endif
 
-
+    // Open output files
     if (MPI_File_open(MPI_COMM_WORLD, pfile_name,MPI_MODE_CREATE | MPI_MODE_WRONLY,
 		                        MPI_INFO_NULL, &pat_file)){
         cout<< "Unable to open patterns file!"<<endl;
@@ -109,9 +112,8 @@ int main(int argc, char* argv[]){
     MPI_File_get_size(in_file, &filesize);
 
     size_t tot_trans = filesize/trans_len;
-    size_t trans_per_iter=_RD_BLK_SIZE/trans_len;
-    compute.allocate_data(trans_per_iter);
-
+    size_t read_per_iter=(_RD_BLK_SIZE+trans_len-1)/trans_len;
+    size_t write_per_iter=(_WR_BLK_SIZE+trans_len-1)/trans_len;
 
 
     // Print details    
@@ -125,16 +127,25 @@ int main(int argc, char* argv[]){
         cout<<"Number of GPU Threads: "<<num_threads<<endl;
         cout<<"Number of MPI ranks: "<<g_mpiSize<<endl;
         cout<<"Read block size per rank: "<<_RD_BLK_SIZE<<" Bytes"<<endl;
-        cout<<"Read block size per rank: "<<trans_per_iter<<" transactions"<<endl;
+        cout<<"Read block size per rank: "<<read_per_iter<<" transactions"<<endl;
+        cout<<"Write block size per rank: "<<_WR_BLK_SIZE<<" Bytes"<<endl;
+        cout<<"Write block size per rank: "<<write_per_iter<<" transactions"<<endl;
         cout<<"=============================================="<<endl;
     }
 
 
 
-    //Initialize apriori
+    // Initialize apriori
     Apriori apriori(trans_len, minsup);  
-    size_t w_size,w_each,w_start,w_end,w_write, g_w_head=0;
+
+    // Allocate read memory
+    compute.allocate_data(read_per_iter);
+
+    // Read and write heads
+    size_t w_size,w_each,w_start,w_end,w_write,g_w_end;
+    size_t g_w_head=0;
     size_t r_start,r_end,r_read, g_r_head=0;
+
     // time
     ticks t_write=0, t_compsup=0, t_mpi=0;
     ticks t_loop_start=getticks();
@@ -147,9 +158,9 @@ int main(int argc, char* argv[]){
         compute.set_patterns(apriori.patterns.get_data(), apriori.patterns.get_length());
         
 
-        for(g_r_head=0;g_r_head<tot_trans;g_r_head+=trans_per_iter*g_mpiSize){
-            r_start=g_r_head+trans_per_iter*g_mpiRank;
-            r_end=r_start+trans_per_iter;
+        for(g_r_head=0;g_r_head<tot_trans;g_r_head+=read_per_iter*g_mpiSize){
+            r_start=g_r_head+read_per_iter*g_mpiRank;
+            r_end=r_start+read_per_iter;
             if (r_end>tot_trans) r_end=tot_trans;
             r_read=r_end-r_start;
 
@@ -182,19 +193,21 @@ int main(int argc, char* argv[]){
         ticks t_write_start = getticks();
 
         w_size=apriori.supports.size();
-        w_each=(w_size+g_mpiSize-1)/g_mpiSize;
-        w_start=w_each*g_mpiRank;
-        w_end=w_start+w_each;
-        if (w_end>w_size) w_end=w_size;
-        w_write=w_end-w_start;
 
-
-        MPI_File_write_at(pat_file,(g_w_head+w_start)*trans_len, apriori.patterns.get_data()+w_start*trans_len,
+        g_w_end=g_w_head+w_size;
+        for(size_t w_head=g_w_head;w_head<g_w_end;w_head+=write_per_iter*g_mpiSize){
+            w_start=w_head+write_per_iter*g_mpiRank;
+            w_end=w_start+write_per_iter;
+            if (w_end>g_w_end) w_end=g_w_end;
+            w_write=w_end-w_start;
+            
+            MPI_File_write_at(pat_file,w_start*trans_len, apriori.patterns.get_data()+(w_start-g_w_head)*trans_len,
                          w_write*trans_len, _MPI_ELM_DTYPE, MPI_STATUS_IGNORE);
-        MPI_File_write_at(sup_file,(g_w_head+w_start)*sizeof(stype), apriori.supports.data()+w_start,
+            MPI_File_write_at(sup_file,w_start*sizeof(stype), apriori.supports.data()+(w_start-g_w_head),
                             w_write*sizeof(stype), _MPI_ELM_DTYPE, MPI_STATUS_IGNORE);
 
-        g_w_head+=w_size;
+        }
+        g_w_head=g_w_end;
         
         ticks t_write_end = getticks();
         t_write += t_write_end-t_write_start;
