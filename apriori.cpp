@@ -19,8 +19,8 @@ using namespace std;
 
 #define _DEL_EXISTING
 
-#define _RD_BLK_SIZE 16384 //128MB
-#define _WR_BLK_SIZE 16384
+#define _RD_BLK_SIZE (1024<<6) //64KB
+#define _WR_BLK_SIZE (1024<<6)
 
 
 
