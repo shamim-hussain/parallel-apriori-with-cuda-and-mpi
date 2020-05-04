@@ -147,7 +147,7 @@ int main(int argc, char* argv[]){
     size_t r_start,r_end,r_read, g_r_head=0;
 
     // time
-    ticks t_write=0, t_compsup=0, t_mpi=0;
+    ticks t_write=0, t_compsup=0, t_read=0; t_write=0;
     ticks t_loop_start=getticks();
     do
     {   
@@ -157,15 +157,21 @@ int main(int argc, char* argv[]){
         
         compute.set_patterns(apriori.patterns.get_data(), apriori.patterns.get_length());
         
-
+        //Read and compute support
         for(g_r_head=0;g_r_head<tot_trans;g_r_head+=read_per_iter*g_mpiSize){
             r_start=g_r_head+read_per_iter*g_mpiRank;
             r_end=r_start+read_per_iter;
             if (r_end>tot_trans) r_end=tot_trans;
             r_read=r_end-r_start;
 
+            //Read from file
+            ticks t_read_start=getticks();
             MPI_File_read_at(in_file, r_start*trans_len, compute.get_data_addr(),
                                 r_read*trans_len, _MPI_ELM_DTYPE, MPI_STATUS_IGNORE);
+            ticks t_read_end=getticks();
+            t_read+=t_read_end-t_read_start;
+
+            // Set size of read data
             compute.set_num_data(r_read);
             
             // Compute Support
@@ -183,15 +189,13 @@ int main(int argc, char* argv[]){
                         apriori.supports.size(), _MPI_SUP_DTYPE, 
                         MPI_SUM, MPI_COMM_WORLD);
         ticks t_mpi_end = getticks();
-        t_mpi+=t_mpi_end-t_mpi_start;
+        t_write+=t_mpi_end-t_mpi_start;
 
         apriori.remove_infrequent();
 
 
 
         // Write patterns
-        ticks t_write_start = getticks();
-
         w_size=apriori.supports.size();
 
         g_w_end=g_w_head+w_size;
@@ -201,16 +205,18 @@ int main(int argc, char* argv[]){
             if (w_end>g_w_end) w_end=g_w_end;
             w_write=w_end-w_start;
             
+
+            ticks t_write_start = getticks();
             MPI_File_write_at(pat_file,w_start*trans_len, apriori.patterns.get_data()+(w_start-g_w_head)*trans_len,
                          w_write*trans_len, _MPI_ELM_DTYPE, MPI_STATUS_IGNORE);
             MPI_File_write_at(sup_file,w_start*sizeof(stype), apriori.supports.data()+(w_start-g_w_head),
                             w_write*sizeof(stype), _MPI_ELM_DTYPE, MPI_STATUS_IGNORE);
-
+            ticks t_write_end = getticks();
+            t_write += t_write_end-t_write_start;
         }
         g_w_head=g_w_end;
         
-        ticks t_write_end = getticks();
-        t_write += t_write_end-t_write_start;
+        
 
     } while (apriori.patterns.get_length()>1);
 
@@ -221,7 +227,8 @@ int main(int argc, char* argv[]){
         cout<<"Number of frequent patterns = "<<g_w_head<<endl;
         cout<<"Time taken in main loop = "<<ticks_to_sec(t_loop)<<" sec"<<endl;
         cout<<"Time taken in compute_support = "<<ticks_to_sec(t_compsup)<<" sec"<<endl;
-        cout<<"Time taken in Allreduce = "<<ticks_to_sec(t_mpi)<<" sec"<<endl;
+        cout<<"Time taken in Allreduce = "<<ticks_to_sec(t_write)<<" sec"<<endl;
+        cout<<"Time taken in reading file = "<<ticks_to_sec(t_read)<<" sec"<<endl;
         cout<<"Time taken in writing file = "<<ticks_to_sec(t_write)<<" sec"<<endl;
     }
     
