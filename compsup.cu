@@ -25,7 +25,7 @@ __global__  void compute_support_kernel(char* patterns, size_t num_patterns,
 	}
 	sup_j =sup_j + !not_subset;
 	}
-	supports[ind_x]=sup_j;
+	supports[ind_x]+=sup_j;
 }
 
 
@@ -53,14 +53,15 @@ void Compute::set_patterns(char* patterns, size_t num_patterns){
 	cudaMalloc(&g_patterns, g_num_patterns * g_trans_len * sizeof(char)); 
 	cudaMemcpy(g_patterns, patterns, g_num_patterns * g_trans_len * sizeof(char),
 				cudaMemcpyHostToDevice);
+
+	if (g_supports!=NULL) cudaFree(g_supports);
+	cudaMallocManaged(&g_supports, g_num_patterns * sizeof(unsigned int));
+	cudaMemset(g_supports,0,g_num_patterns * sizeof(unsigned int));
 }
 
 void Compute::compute_support(){
 		//threading info           
 		size_t blocksCount = (g_num_patterns+threadsCount-1)/threadsCount;
-		
-		if (g_supports!=NULL) cudaFree(g_supports);
-		cudaMallocManaged(&g_supports, g_num_patterns * sizeof(unsigned int));
 		
 		compute_support_kernel<<<blocksCount, threadsCount>>> (g_patterns, g_num_patterns,
 																g_dataset, g_num_data, 

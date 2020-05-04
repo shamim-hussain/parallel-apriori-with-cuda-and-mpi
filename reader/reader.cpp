@@ -9,8 +9,6 @@ using namespace std;
 #define _SUP_FILE_NAME "supports.dat"
 #define _PAT_FILE_NAME "patterns.dat"
 
-
-
 ostream& operator << (ostream &out, vector<size_t> items){
     auto i=items.begin();
     out<<*i;
@@ -37,7 +35,7 @@ int main(int argc, char* argv[]){
         pat_file_name=argv[2];
         sup_file_name=argv[3];
     }
-    
+
     cout<<"===================================================="<<endl;
     cout<<"Transaction length = "<<trans_len<<endl;
     cout<<"Pattern File -> "<<pat_file_name<<endl;

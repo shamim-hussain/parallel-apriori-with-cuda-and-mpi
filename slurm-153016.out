@@ -2,8 +2,8 @@
 + '[' x6 = x ']'
 + srun hostname -s
 + sort -u
-+ awk '{ print $0 "-ib slots=6"; }' /tmp/hosts.152569
-+ mv /tmp/tmp.152569 /tmp/hosts.152569
++ awk '{ print $0 "-ib slots=6"; }' /tmp/hosts.153016
++ mv /tmp/tmp.153016 /tmp/hosts.153016
 + module load gcc/7.4.0/1
 ++ /usr/share/lmod/lmod/libexec/lmod bash load gcc/7.4.0/1
 
@@ -127,7 +127,7 @@ Due to MODULEPATH changes, the following have been reloaded:
 ++ export _ModuleTable_Sz_
 ++ : -s sh
 + eval
-+ mpirun -hostfile /tmp/hosts.152569 -np 6 /gpfs/u/home/DLTM/DLTMhssn/scratch/parallel_project/parallel_project/apriori datasets/mnist_98.dat 98 40000 512 m98p.dat m98s.dat
++ mpirun -hostfile /tmp/hosts.153016 -np 6 /gpfs/u/home/DLTM/DLTMhssn/scratch/parallel_project/parallel_project/apriori datasets/mnist_25.dat 25 20000 512
 perl: warning: Setting locale failed.
 perl: warning: Please check that your locale settings:
 	LANGUAGE = (unset),
@@ -136,16 +136,19 @@ perl: warning: Please check that your locale settings:
     are supported and installed on your system.
 perl: warning: Falling back to the standard locale ("C").
 ==============================================
-Input file: datasets/mnist_98.dat
-Output Files : Patterns -> m98p.dat; Supports -> m98s.dat
-Transaction Length: 98
+Input file: datasets/mnist_25.dat
+Output Files : Patterns -> patterns.dat; Supports -> supports.dat
+Transaction Length: 25
 Total number of transactions: 60000
-Minimum Support: 40000
+Minimum Support: 20000
 Number of GPU Threads: 512
 Number of MPI ranks: 6
+Read block size per rank: 16384 Bytes
+Read block size per rank: 655 transactions
 ==============================================
-Time taken in main loop = 0.1028 sec
-Time taken in compute_support = 0.0995463 sec
-Time taken in Allreduce = 4.85547e-05 sec
-Time taken in writing file = 0.000125756 sec
-+ rm /tmp/hosts.152569
+Number of frequent patterns = 776
+Time taken in main loop = 0.232199 sec
+Time taken in compute_support = 0.107437 sec
+Time taken in Allreduce = 0.000597432 sec
+Time taken in writing file = 0.000886965 sec
++ rm /tmp/hosts.153016
