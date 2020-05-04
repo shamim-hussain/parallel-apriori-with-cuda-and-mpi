@@ -187,14 +187,10 @@ int main(int argc, char* argv[]){
         if (w_end>w_size) w_end=w_size;
         w_write=w_end-w_start;
 
-        MPI_File_set_view(pat_file, (g_w_head+w_start)*trans_len,
-		                            _MPI_ELM_DTYPE, _MPI_ELM_DTYPE, "native",MPI_INFO_NULL);
-        MPI_File_set_view(sup_file, (g_w_head+w_start)*sizeof(stype),
-		                            _MPI_ELM_DTYPE, _MPI_ELM_DTYPE, "native",MPI_INFO_NULL);
 
-        MPI_File_write(pat_file, apriori.patterns.get_data()+w_start*trans_len,
+        MPI_File_write_at(pat_file,(g_w_head+w_start)*trans_len, apriori.patterns.get_data()+w_start*trans_len,
                          w_write*trans_len, _MPI_ELM_DTYPE, MPI_STATUS_IGNORE);
-        MPI_File_write(sup_file, apriori.supports.data()+w_start,
+        MPI_File_write_at(sup_file,(g_w_head+w_start)*sizeof(stype), apriori.supports.data()+w_start,
                             w_write*sizeof(stype), _MPI_ELM_DTYPE, MPI_STATUS_IGNORE);
 
         g_w_head+=w_size;
