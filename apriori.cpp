@@ -31,6 +31,9 @@ int main(int argc, char* argv[]){
     const char* pfile_name=_PFILE_NAME;
     const char* sfile_name=_SFILE_NAME;
     unsigned int num_threads = _NUM_THREADS;
+
+    size_t rd_blk_size = _RD_BLK_SIZE;
+    size_t wr_blk_size = _WR_BLK_SIZE;
     
     if( argc < 4 || argc > 7 ){
         cout<<"apriori requires 3 arguments: file_name, transaction_length (in bytes) and minimum_support (unsigned integer) e.g. ./apriori mnist_25.dat 25 20000 \n";
@@ -48,12 +51,18 @@ int main(int argc, char* argv[]){
     if( argc > 4 )
         num_threads = (unsigned int)atoi(argv[4]);
     
-    // set output file names if provided
     if( argc > 5 )
-        pfile_name = argv[5];
+        rd_blk_size = (size_t)atoi(argv[5]);
 
     if( argc > 6 )
-        sfile_name = argv[6];
+        wr_blk_size = (size_t)atoi(argv[6]);
+
+    // set output file names if provided
+    // if( argc > 5 )
+    //     pfile_name = argv[5];
+
+    // if( argc > 6 )
+    //     sfile_name = argv[6];
     
 
     //Mpi file handles
@@ -112,8 +121,8 @@ int main(int argc, char* argv[]){
     MPI_File_get_size(in_file, &filesize);
 
     size_t tot_trans = filesize/trans_len;
-    size_t read_per_iter=(_RD_BLK_SIZE+trans_len-1)/trans_len;
-    size_t write_per_iter=(_WR_BLK_SIZE+trans_len-1)/trans_len;
+    size_t read_per_iter=(rd_blk_size+trans_len-1)/trans_len;
+    size_t write_per_iter=(wr_blk_size+trans_len-1)/trans_len;
 
 
     // Print details    
@@ -126,9 +135,9 @@ int main(int argc, char* argv[]){
         cout<<"Minimum Support: "<<minsup<<endl;
         cout<<"Number of GPU Threads: "<<num_threads<<endl;
         cout<<"Number of MPI ranks: "<<g_mpiSize<<endl;
-        cout<<"Read block size per rank: "<<_RD_BLK_SIZE<<" Bytes"<<endl;
+        cout<<"Read block size per rank: "<<rd_blk_size<<" Bytes"<<endl;
         cout<<"Read block size per rank: "<<read_per_iter<<" transactions"<<endl;
-        cout<<"Write block size per rank: "<<_WR_BLK_SIZE<<" Bytes"<<endl;
+        cout<<"Write block size per rank: "<<wr_blk_size<<" Bytes"<<endl;
         cout<<"Write block size per rank: "<<write_per_iter<<" transactions"<<endl;
         cout<<"=============================================="<<endl;
     }
@@ -148,15 +157,22 @@ int main(int argc, char* argv[]){
 
     // time
     ticks t_write=0, t_compsup=0, t_read=0; t_write=0;
+    size_t i_ter=0;
     ticks t_loop_start=getticks();
     do
     {   
         
         // Apriori step
         apriori.extend_tree();
-        
+
+        // No patterns generated
+        if(apriori.patterns.get_length()==0) break;
+
+        //Increase number of iterations
+        i_ter++;
+
         compute.set_patterns(apriori.patterns.get_data(), apriori.patterns.get_length());
-        
+
         //Read and compute support
         for(g_r_head=0;g_r_head<tot_trans;g_r_head+=read_per_iter*g_mpiSize){
             r_start=g_r_head+read_per_iter*g_mpiRank;
@@ -216,8 +232,6 @@ int main(int argc, char* argv[]){
         }
         g_w_head=g_w_end;
         
-        
-
     } while (apriori.patterns.get_length()>1);
 
     ticks t_loop_end=getticks();
@@ -228,6 +242,7 @@ int main(int argc, char* argv[]){
         cout<<"Time taken in main loop = "<<ticks_to_sec(t_loop)<<" sec"<<endl;
         cout<<"Time taken in compute_support = "<<ticks_to_sec(t_compsup)<<" sec"<<endl;
         cout<<"Time taken in Allreduce = "<<ticks_to_sec(t_write)<<" sec"<<endl;
+        cout<<"Apriori iterations = "<<i_ter<<endl;
         cout<<"Time taken in reading file = "<<ticks_to_sec(t_read)<<" sec"<<endl;
         cout<<"Time taken in writing file = "<<ticks_to_sec(t_write)<<" sec"<<endl;
     }
