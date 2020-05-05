@@ -3,6 +3,9 @@ all: compsup.cu apriori.cpp
 	nvcc -arch=sm_70 compsup.cu -c -o compsup.o
 	mpic++ apriori.o compsup.o -o apriori \-L/usr/local/cuda-10.1/lib64/ -lcuda -lcudart
 
+nocuda:
+	mpic++ apriori.cpp compsup.cpp -o apriori
+
 reader: reader/reader.cpp
 	g++ reader/reader.cpp -o reader/reader
 
@@ -14,6 +17,7 @@ run: slurmSpectrum.sh
 
 read: reader/reader
 	reader/reader $(tl)
+
 rd20: reader/reader
 	reader/reader | tail -n 20
 
@@ -23,3 +27,7 @@ rmout: patterns.dat supports.dat
 
 rmslurm: 
 	rm -r slurm-*.out
+
+clean:
+	rm apriori.o 
+	rm compsup.o

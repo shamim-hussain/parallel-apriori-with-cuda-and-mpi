@@ -1,9 +1,9 @@
-+ '[' x6 = x ']'
-+ '[' x6 = x ']'
++ '[' x24 = x ']'
++ '[' x12 = x ']'
 + srun hostname -s
 + sort -u
-+ awk '{ print $0 "-ib slots=6"; }' /tmp/hosts.153017
-+ mv /tmp/tmp.153017 /tmp/hosts.153017
++ awk '{ print $0 "-ib slots=12"; }' /tmp/hosts.155778
++ mv /tmp/tmp.155778 /tmp/hosts.155778
 + module load gcc/7.4.0/1
 ++ /usr/share/lmod/lmod/libexec/lmod bash load gcc/7.4.0/1
 
@@ -127,7 +127,7 @@ Due to MODULEPATH changes, the following have been reloaded:
 ++ export _ModuleTable_Sz_
 ++ : -s sh
 + eval
-+ mpirun -hostfile /tmp/hosts.153017 -np 6 /gpfs/u/home/DLTM/DLTMhssn/scratch/parallel_project/parallel_project/apriori datasets/mnist_25.dat 25 20000 512
++ mpirun -hostfile /tmp/hosts.155778 -np 24 /gpfs/u/home/DLTM/DLTMhssn/scratch/parallel_project/parallel_project/apriori datasets/mnist_25.dat 25 20000 1024
 perl: warning: Setting locale failed.
 perl: warning: Please check that your locale settings:
 	LANGUAGE = (unset),
@@ -141,16 +141,18 @@ Output Files : Patterns -> patterns.dat; Supports -> supports.dat
 Transaction Length: 25
 Total number of transactions: 60000
 Minimum Support: 20000
-Number of GPU Threads: 512
-Number of MPI ranks: 6
-Read block size per rank: 16384 Bytes
-Read block size per rank: 656 transactions
-Write block size per rank: 16384 Bytes
-Write block size per rank: 656 transactions
+Number of GPU Threads: 1024
+Number of MPI ranks: 24
+Read block size per rank: 65536 Bytes
+Read block size per rank: 2622 transactions
+Write block size per rank: 65536 Bytes
+Write block size per rank: 2622 transactions
 ==============================================
 Number of frequent patterns = 776
-Time taken in main loop = 0.18439 sec
-Time taken in compute_support = 0.108396 sec
-Time taken in Allreduce = 0.0001144 sec
-Time taken in writing file = 0.000937682 sec
-+ rm /tmp/hosts.153017
+Time taken in main loop = 0.115469 sec
+Time taken in compute_support = 0.0489195 sec
+Time taken in Allreduce = 0.0145576 sec
+Apriori iterations = 5
+Time taken in reading file = 0.000595391 sec
+Time taken in writing file = 0.0145576 sec
++ rm /tmp/hosts.155778
