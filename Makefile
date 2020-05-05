@@ -17,6 +17,7 @@ run: slurmSpectrum.sh
 
 read: reader/reader
 	reader/reader $(tl)
+
 rd20: reader/reader
 	reader/reader | tail -n 20
 
@@ -26,3 +27,7 @@ rmout: patterns.dat supports.dat
 
 rmslurm: 
 	rm -r slurm-*.out
+
+clean:
+	rm apriori.o 
+	rm compsup.o

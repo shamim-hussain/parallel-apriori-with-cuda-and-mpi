@@ -5,7 +5,7 @@
 #include "compsup.h"
 
 // w/o-CUDA version
-void compute_support(char* patterns, size_t num_patterns, 
+void compute_support_proc(char* patterns, size_t num_patterns, 
                         char*  dataset, size_t num_data,
                         size_t trans_len, unsigned int* supports)
 {
@@ -31,7 +31,7 @@ void compute_support(char* patterns, size_t num_patterns,
             sup_j = sup_j + !not_subset;
         }
 
-        supports[j]=sup_j;
+        supports[j]+=sup_j;
     }
 }
 
@@ -40,7 +40,7 @@ void compute_support(char* patterns, size_t num_patterns,
 void Compute::set_data(char*  dataset, size_t num_data){
 	g_num_data=num_data;
 	if (g_dataset!=NULL) free(g_dataset);
-	g_dataset=malloc(g_num_data * g_trans_len * sizeof(char));
+	g_dataset=(char*)malloc(g_num_data * g_trans_len * sizeof(char));
 	memcpy(g_dataset, dataset, g_num_data * g_trans_len * sizeof(char));
 }
 
@@ -57,16 +57,16 @@ char* Compute::get_data_addr(){
 void Compute::set_patterns(char* patterns, size_t num_patterns){
 	g_num_patterns=num_patterns;
 	if (g_patterns!=NULL) free(g_patterns);				
-	g_patterns=malloc(g_num_patterns * g_trans_len * sizeof(char)); 
+	g_patterns=(char*)malloc(g_num_patterns * g_trans_len * sizeof(char)); 
 	memcpy(g_patterns, patterns, g_num_patterns * g_trans_len * sizeof(char));
 
 	if (g_supports!=NULL) free(g_supports);
-	g_supports=malloc(g_num_patterns * sizeof(unsigned int));
+	g_supports=(unsigned int*)malloc(g_num_patterns * sizeof(unsigned int));
 	memset(g_supports,0,g_num_patterns * sizeof(unsigned int));
 }
 
 void Compute::compute_support(){         
-		compute_support(g_patterns, g_num_patterns,g_dataset, g_num_data, 
+	compute_support_proc(g_patterns, g_num_patterns,g_dataset, g_num_data, 
 						g_trans_len, g_supports);
 }
 
