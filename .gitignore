@@ -37,3 +37,4 @@ bigdata/*
 
 patterns.dat
 supports.dat
+*.o
