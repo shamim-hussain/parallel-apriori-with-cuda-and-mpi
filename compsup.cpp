@@ -4,7 +4,10 @@
 
 #include "compsup.h"
 
-// w/o-CUDA version
+// This file implements the "compute.h" Compute class and relevant functions
+// WITHOUT CUDA and GPU activity
+
+// w/o-CUDA version of support computation
 void compute_support_proc(char* patterns, size_t num_patterns, 
                         char*  dataset, size_t num_data,
                         size_t trans_len, unsigned int* supports)

@@ -8,10 +8,13 @@
 // FOR POWER9 SYSTEMS ONLY - x86 SYSTEMS HAVE A DIFFERENT CODE  //
 /****************************************************************/
 
+// dtype of ticks
 typedef unsigned long long ticks;
 
+// DCS POWER9 TICKS PER SECOND  
 #define _TICK_PER_SECOND 512000000.0L
 
+// Get ticks from the cpu clock
 static __inline__ ticks getticks(void)
 {
   unsigned int tbl, tbu0, tbu1;
@@ -25,30 +28,9 @@ static __inline__ ticks getticks(void)
   return (((unsigned long long)tbu0) << 32) | tbl;
 }
 
+
+// Convert ticks to seconds
 long double inline ticks_to_sec(ticks tick_count){
   return ((long double)tick_count)/_TICK_PER_SECOND;
 }
-
-// int main()
-// {
-// 	unsigned long long start = 0;
-// 	unsigned long long finish = 0;
-//         long double result=0.0;
-// 	unsigned int i;
-
-// 	start = getticks();
-
-// 	/* for(i=0; i < 1000000000; i++) */
-// 	/* { */
-// 	/* 	result += sqrtd((long double)i*i); */
-//         /* } */
-
-// 	usleep(10000000); // 10 seconds sleep
-
-// 	finish = getticks();
-
-// 	printf("10 second usleep: finish(%llu) - start(%llu) = %llu \n", finish, start, (finish-start));
-
-// 	return 0;
-// }
 #endif

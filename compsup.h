@@ -1,8 +1,10 @@
 #ifndef __COMPSUP_H
 #define __COMPSUP_H
 
+// Intializes cuda
 void cuda_init(int myrank);
 
+// The compute class performs support computation
 class Compute{
 	char* g_patterns;
 	char* g_dataset;

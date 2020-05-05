@@ -4,14 +4,21 @@
 #include <vector>
 #include "dataset.h"
 
+
+// Type of support values
 typedef unsigned int stype;
+// Type of sets of support values
 typedef vector<stype> sstype;
 
+
+// The apriori class - performs different steps of the apriori algorithm
 class Apriori{
+    // Current level
     size_t level;
+    // Transaction length
     size_t trans_len;
     
-
+    // Generates first set of candidates of length 1
     void get_C1(){
         size_t pat_size=trans_len<<3;
         Dataset C1(trans_len,pat_size);
@@ -24,6 +31,7 @@ class Apriori{
         supports.resize(pat_size);
     }
 
+    // Generates second set of candidates of length 2
     void get_C2(){
         size_t len=patterns.get_length();
         size_t pat_size=(len*(len-1))>>1;
@@ -37,6 +45,7 @@ class Apriori{
         supports.resize(pat_size);
     }
 
+    // General candidate generation step for N>1
     void get_CN(){
         size_t len=patterns.get_length();
         Dataset CN(trans_len);
@@ -64,14 +73,18 @@ class Apriori{
     }
 
     public:
+    // Minimum Support
     stype minsup;
+    // All patterns being processed
     Dataset patterns;
+    // Corresponding support values
     sstype supports;
 
     Apriori(size_t t_len, stype msup):level(0),trans_len(t_len),
                         minsup(msup),patterns(t_len){
     }
 
+    // Candidate gen and extension of the prefix tree
     inline void extend_tree(){
         if (!level){
             get_C1();
@@ -87,6 +100,7 @@ class Apriori{
         }
     }
 
+    // Removal of infrequent patterns
     inline void remove_infrequent(){
         sstype newsup;
         Dataset newpat(trans_len);
@@ -101,6 +115,7 @@ class Apriori{
         supports.swap(newsup);
     }
 
+    // Get the current level of apriori
     inline unsigned int get_level(){
         return level;
     }

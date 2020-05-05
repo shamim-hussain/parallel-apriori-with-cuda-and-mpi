@@ -1,3 +1,7 @@
+/*
+Main entry point file
+*/
+
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -10,34 +14,45 @@
 
 using namespace std;
 
+// MPI datatypes used
 #define _MPI_ELM_DTYPE MPI_CHAR
 #define _MPI_SUP_DTYPE MPI_UNSIGNED 
 
+// Default number or threads
 #define _NUM_THREADS 256
+// Default patterns and supports output file names
 #define _PFILE_NAME "patterns.dat"
 #define _SFILE_NAME "supports.dat"
 
+// Delete file if exists?
 #define _DEL_EXISTING
 
+// Default read and write block sizes
 #define _RD_BLK_SIZE (1024<<6) //64KB
 #define _WR_BLK_SIZE (1024<<6)
 
 
 
 int main(int argc, char* argv[]){
+    // Transaction length in byts
     size_t trans_len;
+    // Minimum support
     size_t minsup;
+    // Input file name
     const char* file_name;
+    // Output patterns and supports files
     const char* pfile_name=_PFILE_NAME;
     const char* sfile_name=_SFILE_NAME;
+    // Number of cuda threads
     unsigned int num_threads = _NUM_THREADS;
 
+    // Read and write block sizes
     size_t rd_blk_size = _RD_BLK_SIZE;
     size_t wr_blk_size = _WR_BLK_SIZE;
     
     if( argc < 4 || argc > 7 ){
         cout<<"apriori requires 3 arguments: file_name, transaction_length (in bytes) and minimum_support (unsigned integer) e.g. ./apriori mnist_25.dat 25 20000 \n";
-        cout<<"Additionally you can provide 3 more arguments - num_threads, output_pattern_file, output_support_file e.g. ./apriori mnist_25.dat 25 20000 512 patterns.dat supports.dat \n";
+        cout<<"Additionally you can provide 3 more arguments - num_threads, read block size, write block size e.g. ./apriori mnist_25.dat 25 20000 512 patterns.dat supports.dat \n";
         exit(-1);
     }
 
@@ -58,11 +73,11 @@ int main(int argc, char* argv[]){
         wr_blk_size = (size_t)atoi(argv[6]);
 
     // set output file names if provided
-    // if( argc > 5 )
-    //     pfile_name = argv[5];
+    // if( argc > 7 )
+    //     pfile_name = argv[7];
 
-    // if( argc > 6 )
-    //     sfile_name = argv[6];
+    // if( argc > 8 )
+    //     sfile_name = argv[8];
     
 
     //Mpi file handles
@@ -111,16 +126,16 @@ int main(int argc, char* argv[]){
         exit(-1);
     }
     
-    // Initialize CUDA and Compute
+    // Initialize CUDA and a Compute class object
     cuda_init(g_mpiRank);
     Compute compute(trans_len, num_threads);
 
 
-    // Read chunksize calculation
+    // Get file size and total number of transactions
     MPI_Offset filesize;
     MPI_File_get_size(in_file, &filesize);
-
     size_t tot_trans = filesize/trans_len;
+    // Determine read and write transactions block size
     size_t read_per_iter=(rd_blk_size+trans_len-1)/trans_len;
     size_t write_per_iter=(wr_blk_size+trans_len-1)/trans_len;
 
@@ -162,18 +177,19 @@ int main(int argc, char* argv[]){
     do
     {   
         
-        // Apriori step
+        // Apriori candidate generation step
         apriori.extend_tree();
 
-        // No patterns generated
+        // No patterns generated end the algorithm
         if(apriori.patterns.get_length()==0) break;
 
-        //Increase number of iterations
+        // Increase number of iterations
         i_ter++;
 
+        // Transfer candidate patterns to compute (from apriori)
         compute.set_patterns(apriori.patterns.get_data(), apriori.patterns.get_length());
 
-        //Read and compute support
+        // Read chunks of input data from file and compute support
         for(g_r_head=0;g_r_head<tot_trans;g_r_head+=read_per_iter*g_mpiSize){
             r_start=g_r_head+read_per_iter*g_mpiRank;
             r_end=r_start+read_per_iter;
@@ -197,6 +213,7 @@ int main(int argc, char* argv[]){
             t_compsup+=t_compsup_end-t_compsup_start;            
         }
 
+        // Transfer computed support values back to apriori (from compute)
         compute.get_supports(apriori.supports.data());
 
         // MPI Allreduce
@@ -206,7 +223,8 @@ int main(int argc, char* argv[]){
                         MPI_SUM, MPI_COMM_WORLD);
         ticks t_mpi_end = getticks();
         t_write+=t_mpi_end-t_mpi_start;
-
+        
+        //Remove infrequent patterns
         apriori.remove_infrequent();
 
 
@@ -236,7 +254,8 @@ int main(int argc, char* argv[]){
 
     ticks t_loop_end=getticks();
     size_t t_loop=t_loop_end-t_loop_start;
-
+    
+    // Print out timings
     if (g_mpiRank==0) {
         cout<<"Number of frequent patterns = "<<g_w_head<<endl;
         cout<<"Time taken in main loop = "<<ticks_to_sec(t_loop)<<" sec"<<endl;
@@ -247,7 +266,7 @@ int main(int argc, char* argv[]){
         cout<<"Time taken in writing file = "<<ticks_to_sec(t_write)<<" sec"<<endl;
     }
     
-
+    // Clean up and finalize
     compute.free_all();
     
     MPI_File_close(&in_file);
